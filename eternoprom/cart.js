@@ -7,6 +7,30 @@
   'use strict';
 
   const API_BASE = window.EPM_API || 'http://localhost:8000';
+  const ADMIN_TOKEN_KEY = 'epm_admin_token';
+
+  function isAdminSession() {
+    try { return !!localStorage.getItem(ADMIN_TOKEN_KEY); } catch (e) { return false; }
+  }
+
+  function showMaintenanceOverlay(message) {
+    if (document.getElementById('epmMaintenanceOverlay')) return;
+    var overlay = document.createElement('div');
+    overlay.id = 'epmMaintenanceOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,25,82,.92);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;';
+    overlay.innerHTML = '<div style="max-width:680px;"><div style="font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:#93c5fd;margin-bottom:12px;">Технический режим</div><div style="font-size:34px;font-weight:800;margin-bottom:14px;">Сайт временно недоступен</div><div style="font-size:16px;line-height:1.7;color:rgba(255,255,255,.84);">' + (message || 'Мы обновляем каталог и скоро вернёмся.') + '</div></div>';
+    document.body.appendChild(overlay);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function loadSiteState() {
+    if (/\/admin\/?$/.test(location.pathname || '') || isAdminSession()) return;
+    fetch(API_BASE + '/api/site-state')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(data){ if (data && data.maintenance_mode) showMaintenanceOverlay(data.maintenance_message); })
+      .catch(function(){});
+  }
 
   function loadCatalogAdminEnhancements() {
     var path = (location.pathname || '').replace(/\/index\.html$/, '/');
@@ -20,6 +44,7 @@
   }
 
   loadCatalogAdminEnhancements();
+  loadSiteState();
 
   // ─── Модель (in-memory) ──────────────────────────────────────────────────────
   // ─── Модель (localStorage) ──────────────────────────────────────────────────

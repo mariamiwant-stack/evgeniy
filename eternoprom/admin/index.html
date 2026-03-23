@@ -496,6 +496,7 @@ tr:hover td{background:#fafbff;}
 </div>
 <script>
 const API = window.EPM_API || 'http://localhost:8000';
+const ADMIN_TOKEN_KEY = 'epm_admin_token';
 let TOKEN = '';
 let ALL_DATA = { orders: [], leads: [], callbacks: [] };
 let CURRENT_ENTRY = null;
@@ -513,6 +514,7 @@ function doLogin() {
   }).then(r => r.json()).then(d => {
     if (d.token) {
       TOKEN = d.token;
+      try { localStorage.setItem(ADMIN_TOKEN_KEY, TOKEN); } catch(e) {}
       document.getElementById('crm-login').style.display = 'none';
       document.getElementById('crm-app').style.display = 'grid';
       loadAllData();
@@ -536,6 +538,7 @@ function doLogin() {
 document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
 function doLogout() {
+  try { localStorage.removeItem(ADMIN_TOKEN_KEY); } catch(e) {}
   TOKEN = '';
   document.getElementById('crm-app').style.display = 'none';
   document.getElementById('crm-login').style.display = 'flex';
