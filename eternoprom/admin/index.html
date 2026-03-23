@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta content="Perplexity Computer" name="generator"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CRM — Единый ресурс металла</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,sans-serif;background:#f0f2f8;color:#1a1f36;min-height:100vh;}
+.crm-layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+
+/* Sidebar */
+.crm-sidebar{background:#001952;padding:0;display:flex;flex-direction:column;}
+.crm-sidebar__logo{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px;}
+.crm-sidebar__logo span{font-size:16px;font-weight:700;color:#fff;}
+.crm-sidebar__logo span b{color:#e85656;}
+.crm-sidebar__menu{padding:12px 0;flex:1;}
+.crm-nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+.crm-nav-item:hover{color:#fff;background:rgba(255,255,255,.06);}
+.crm-nav-item.active{color:#fff;background:rgba(255,255,255,.1);border-left-color:#e85656;}
+.crm-nav-item svg{flex-shrink:0;opacity:.7;}
+.crm-nav-item.active svg{opacity:1;}
+.crm-sidebar__logout{padding:16px 18px;border-top:1px solid rgba(255,255,255,.1);}
+.crm-sidebar__logout button{width:100%;padding:8px;background:rgba(255,255,255,.08);border:none;border-radius:6px;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:inherit;}
+
+/* Main */
+.crm-main{display:flex;flex-direction:column;min-height:100vh;}
+.crm-topbar{background:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8ecf4;flex-shrink:0;}
+.crm-topbar__title{font-size:17px;font-weight:700;color:#001952;}
+.crm-topbar__right{display:flex;align-items:center;gap:12px;}
+.crm-badge{background:#e85656;color:#fff;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;}
+.crm-content{padding:24px 28px;flex:1;}
+
+/* Cards */
+.crm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.crm-stat-card{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #e8ecf4;}
+.crm-stat-card__val{font-size:28px;font-weight:700;color:#001952;}
+.crm-stat-card__label{font-size:12px;color:#8a96ae;margin-top:4px;}
+.crm-stat-card__delta{font-size:11px;color:#22c55e;margin-top:6px;}
+
+/* Table */
+.crm-table-wrap{background:#fff;border-radius:12px;border:1px solid #e8ecf4;overflow:hidden;}
+.crm-table-head{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8ecf4;}
+.crm-table-head__title{font-size:14px;font-weight:700;color:#001952;}
+.crm-filters-row{display:flex;gap:8px;align-items:center;padding:12px 20px;background:#f9fafc;border-bottom:1px solid #e8ecf4;flex-wrap:wrap;}
+.crm-filter-btn{padding:6px 14px;border:1px solid #dde3f0;border-radius:6px;background:#fff;font-size:12px;font-family:inherit;cursor:pointer;color:#444;transition:all .15s;}
+.crm-filter-btn.active{background:#001952;color:#fff;border-color:#001952;}
+.crm-search-input{padding:7px 12px;border:1px solid #dde3f0;border-radius:6px;font-size:12px;font-family:inherit;outline:none;width:220px;}
+table{width:100%;border-collapse:collapse;}
+th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#8a96ae;background:#f9fafc;border-bottom:1px solid #e8ecf4;}
+td{padding:12px 16px;font-size:13px;color:#333;border-bottom:1px solid #f0f3f9;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafbff;}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.status-new{background:#eff6ff;color:#1d4ed8;}
+.status-processing{background:#fefce8;color:#854d0e;}
+.status-done{background:#f0fdf4;color:#166534;}
+.status-canceled{background:#fff1f2;color:#9f1239;}
+.crm-btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:none;}
+.crm-btn-primary{background:#001952;color:#fff;}
+.crm-btn-ghost{background:none;border:1px solid #dde3f0;color:#444;}
+
+/* Modal */
+.crm-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;}
+.crm-modal-overlay.open{display:flex;}
+.crm-modal{background:#fff;border-radius:14px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:28px;}
+.crm-modal__title{font-size:17px;font-weight:700;color:#001952;margin-bottom:20px;}
+.crm-field{margin-bottom:14px;}
+.crm-field label{font-size:11px;color:#8a96ae;display:block;margin-bottom:5px;font-weight:500;}
+.crm-field-val{font-size:13px;color:#1a1f36;line-height:1.5;}
+.crm-divider{border:none;border-top:1px solid #e8ecf4;margin:16px 0;}
+.order-items-table{width:100%;border-collapse:collapse;font-size:12px;}
+.order-items-table th{padding:8px 10px;background:#f5f7fa;text-align:left;font-weight:600;color:#8a96ae;text-transform:uppercase;font-size:10px;letter-spacing:.05em;}
+.order-items-table td{padding:8px 10px;border-bottom:1px solid #f0f3f9;}
+
+/* Chart */
+.crm-chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+.crm-chart-card{background:#fff;border-radius:12px;border:1px solid #e8ecf4;padding:18px 20px;}
+.crm-chart-card__title{font-size:13px;font-weight:700;color:#001952;margin-bottom:16px;}
+.bar-chart{display:flex;gap:8px;align-items:flex-end;height:100px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar-fill{width:100%;background:#001952;border-radius:4px 4px 0 0;transition:height .3s;}
+.bar-label{font-size:10px;color:#8a96ae;}
+.bar-val{font-size:10px;color:#001952;font-weight:600;}
+
+/* Settings page */
+#page-settings .settings-section{background:#fff;border:1px solid #e8ecf4;border-radius:12px;padding:20px 24px;margin-bottom:16px;}
+#page-settings .settings-section h3{font-size:14px;font-weight:700;color:#001952;margin-bottom:16px;}
+.crm-input{width:100%;padding:9px 12px;border:1px solid #dde3f0;border-radius:8px;font-size:13px;font-family:inherit;outline:none;color:#1a1f36;}
+.crm-input:focus{border-color:#001952;}
+.settings-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+/* Login */
+#crm-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f2f8;}
+.login-box{background:#fff;border-radius:16px;padding:36px 40px;width:380px;box-shadow:0 8px 32px rgba(0,25,82,.12);}
+.login-box h2{font-size:20px;font-weight:700;color:#001952;margin-bottom:8px;}
+.login-box p{font-size:13px;color:#8a96ae;margin-bottom:24px;}
+
+/* Responsive */
+@media(max-width:768px){
+  .crm-layout{grid-template-columns:1fr;}
+  .crm-sidebar{display:none;}
+  .crm-stats{grid-template-columns:repeat(2,1fr);}
+  .crm-chart-row{grid-template-columns:1fr;}
+}
+</style>
+<script>window.EPM_API = '';</script><script defer="" src="../cart.js"></script><link href="../epm-header.css" rel="stylesheet"/><link href="../epm-footer.css" rel="stylesheet"/></head>
+<body><header class="epm-header">
+<div class="epm-header__inner">
+<a class="epm-logo" href="../index.html">
+<img alt="ЕРМ" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" src="/eternoprom//logo_evg.png"/>
+
+</a>
+<nav class="epm-nav">
+<a class="epm-nav__link" href="../catalog.html">Каталог</a>
+<a class="epm-nav__link" href="../services.html">Услуги</a>
+<a class="epm-nav__link" href="../delivery.html">Доставка и оплата</a>
+<a class="epm-nav__link" href="../articles.html">Статьи</a>
+<a class="epm-nav__link" href="../about.html">О компании</a>
+<a class="epm-nav__link" href="../contacts.html">Контакты</a>
+</nav>
+<div class="epm-header__right">
+<div class="epm-phones">
+<a class="epm-phone" href="tel:+74992262325">+7 (933) 993 87 77</a>
+<a class="epm-phone" href="tel:88007751296">ㅤ</a>
+</div>
+<button class="epm-call-btn" onclick="document.getElementById('epmModal').style.display='flex'">Заказать звонок</button>
+</div>
+</div>
+</header>
+<!-- Login Screen -->
+<div id="crm-login">
+<div class="login-box">
+<h2>Единый ресурс металла CRM</h2>
+<p>Войдите в систему управления заявками</p>
+<div style="display:flex;flex-direction:column;gap:12px;">
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Логин</label>
+<input class="crm-input" id="loginUser" placeholder="admin" type="text" value="admin"/>
+</div>
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Пароль</label>
+<input class="crm-input" id="loginPass" placeholder="••••••••" type="password"/>
+</div>
+<div id="loginError" style="display:none;font-size:12px;color:#e85656;text-align:center;"></div>
+<button onclick="doLogin()" style="padding:12px;background:#001952;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px;">
+        Войти
+      </button>
+</div>
+<div style="margin-top:16px;font-size:11px;color:#b0bbd4;text-align:center;">
+      Demo: admin / admin123  ·  Данные хранятся в API бэкенде
+    </div>
+</div>
+</div>
+<!-- CRM Layout (hidden until login) -->
+<div class="crm-layout" id="crm-app" style="display:none;">
+<!-- Sidebar -->
+<nav class="crm-sidebar">
+<div class="crm-sidebar__logo">
+<svg fill="none" height="28" viewbox="0 0 44 44" width="28"><rect fill="#8B1A1A" height="44" rx="8" width="44"></rect><circle cx="22" cy="22" fill="none" r="10" stroke="#fff" stroke-width="2"></circle><circle cx="22" cy="22" fill="#fff" r="4"></circle></svg>
+<span>ЭТЕРНО<b>ПРОМ</b></span>
+</div>
+<div class="crm-sidebar__menu">
+<div class="crm-nav-item active" onclick="showPage('dashboard')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><rect height="7" width="7" x="3" y="3"></rect><rect height="7" width="7" x="14" y="3"></rect><rect height="7" width="7" x="14" y="14"></rect><rect height="7" width="7" x="3" y="14"></rect></svg>
+        Дашборд
+      </div>
+<div class="crm-nav-item" onclick="showPage('orders')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path><line x1="3" x2="21" y1="6" y2="6"></line><path d="M16 10a4 4 0 01-8 0"></path></svg>
+        Заказы <span class="crm-badge" id="badge-orders" style="margin-left:auto;"></span>
+</div>
+<div class="crm-nav-item" onclick="showPage('leads')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.36 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0121 17h1z"></path></svg>
+        Заявки <span class="crm-badge" id="badge-leads" style="margin-left:auto;"></span>
+</div>
+<div class="crm-nav-item" onclick="showPage('callbacks')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Звонки <span class="crm-badge" id="badge-callbacks" style="margin-left:auto;"></span>
+</div>
+<div class="crm-nav-item" onclick="showPage('analytics')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        Аналитика
+      </div>
+<div class="crm-nav-item" onclick="showPage('settings')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>
+        Настройки
+      </div>
+</div>
+<div class="crm-sidebar__logout">
+<button onclick="doLogout()">← Выйти</button>
+</div>
+</nav>
+<!-- Main content -->
+<div class="crm-main">
+<div class="crm-topbar">
+<div class="crm-topbar__title" id="crm-page-title">Дашборд</div>
+<div class="crm-topbar__right">
+<span id="crm-time" style="font-size:12px;color:#8a96ae;"></span>
+<button class="crm-btn crm-btn-primary" onclick="loadAllData()">↻ Обновить</button>
+</div>
+</div>
+<div id="epmApiError" style="display:none;background:#fff3cd;border-bottom:1px solid #ffc107;padding:10px 28px;font-size:13px;color:#856404;"></div>
+<div class="crm-content">
+<!-- DASHBOARD -->
+<div id="page-dashboard">
+<div class="crm-stats" id="stats-cards">
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="stat-orders">—</div><div class="crm-stat-card__label">Заказов всего</div></div>
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="stat-new">—</div><div class="crm-stat-card__label">Новых сегодня</div></div>
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="stat-leads">—</div><div class="crm-stat-card__label">Заявок на цену</div></div>
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="stat-callbacks">—</div><div class="crm-stat-card__label">Заказов звонка</div></div>
+</div>
+<div class="crm-chart-row">
+<div class="crm-chart-card">
+<div class="crm-chart-card__title">Заявки по дням (последние 7 дней)</div>
+<div class="bar-chart" id="chart-days"></div>
+</div>
+<div class="crm-chart-card">
+<div class="crm-chart-card__title">По типу обратной связи</div>
+<div id="chart-types" style="display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+</div>
+<div class="crm-table-wrap">
+<div class="crm-table-head"><div class="crm-table-head__title">Последние заявки</div></div>
+<table><thead><tr><th>ID</th><th>Тип</th><th>Контакт</th><th>Товар/Страница</th><th>Статус</th><th>Дата</th></tr></thead>
+<tbody id="recent-tbody"></tbody></table>
+</div>
+</div>
+<!-- ORDERS -->
+<div id="page-orders" style="display:none;">
+<div class="crm-table-wrap">
+<div class="crm-table-head">
+<div class="crm-table-head__title">Заказы из корзины</div>
+<button class="crm-btn crm-btn-ghost" onclick="exportCSV('orders')">↓ Экспорт CSV</button>
+</div>
+<div class="crm-filters-row">
+<input class="crm-search-input" oninput="filterTable('orders-tbody', this.value)" placeholder="Поиск по имени, телефону..."/>
+<button class="crm-filter-btn active" onclick="filterStatus('orders', '')">Все</button>
+<button class="crm-filter-btn" onclick="filterStatus('orders', 'new')">Новые</button>
+<button class="crm-filter-btn" onclick="filterStatus('orders', 'processing')">В работе</button>
+<button class="crm-filter-btn" onclick="filterStatus('orders', 'done')">Выполнены</button>
+</div>
+<table><thead><tr><th>ID</th><th>Клиент</th><th>Компания</th><th>Телефон</th><th>Товары</th><th>Сумма</th><th>Статус</th><th>Дата</th><th></th></tr></thead>
+<tbody id="orders-tbody"></tbody></table>
+</div>
+</div>
+<!-- LEADS -->
+<div id="page-leads" style="display:none;">
+<div class="crm-table-wrap">
+<div class="crm-table-head">
+<div class="crm-table-head__title">Заявки на уточнение цены</div>
+<button class="crm-btn crm-btn-ghost" onclick="exportCSV('leads')">↓ Экспорт CSV</button>
+</div>
+<div class="crm-filters-row">
+<input class="crm-search-input" oninput="filterTable('leads-tbody', this.value)" placeholder="Поиск..."/>
+</div>
+<table><thead><tr><th>ID</th><th>Телефон</th><th>Товар</th><th>Страница</th><th>Статус</th><th>Дата</th><th></th></tr></thead>
+<tbody id="leads-tbody"></tbody></table>
+</div>
+</div>
+<!-- CALLBACKS -->
+<div id="page-callbacks" style="display:none;">
+<div class="crm-table-wrap">
+<div class="crm-table-head">
+<div class="crm-table-head__title">Заявки на обратный звонок</div>
+</div>
+<div class="crm-filters-row">
+<input class="crm-search-input" oninput="filterTable('callbacks-tbody', this.value)" placeholder="Поиск..."/>
+</div>
+<table><thead><tr><th>ID</th><th>Имя</th><th>Телефон</th><th>Комментарий</th><th>Статус</th><th>Дата</th><th></th></tr></thead>
+<tbody id="callbacks-tbody"></tbody></table>
+</div>
+</div>
+<!-- ANALYTICS -->
+<div id="page-analytics" style="display:none;">
+<div class="crm-stats">
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="a-total">—</div><div class="crm-stat-card__label">Всего заявок</div></div>
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="a-orders">—</div><div class="crm-stat-card__label">Заказов (корзина)</div></div>
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="a-leads">—</div><div class="crm-stat-card__label">Запросов цены</div></div>
+<div class="crm-stat-card"><div class="crm-stat-card__val" id="a-conv">—</div><div class="crm-stat-card__label">Конв. заказ/заявка</div></div>
+</div>
+<div class="crm-chart-card" style="margin-bottom:16px;">
+<div class="crm-chart-card__title">Топ товаров по запросам цены</div>
+<div id="top-products" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
+</div>
+<div class="crm-chart-card">
+<div class="crm-chart-card__title">Активность по часам</div>
+<div class="bar-chart" id="chart-hours" style="height:80px;"></div>
+</div>
+</div>
+<!-- SETTINGS -->
+<div id="page-settings" style="display:none;">
+<div class="settings-section">
+<h3>Уведомления на почту</h3>
+<div class="settings-row">
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Email для уведомлений</label>
+<input class="crm-input" id="set-email" placeholder="sales@erm-group.ru"/>
+</div>
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Яндекс SMTP логин</label>
+<input class="crm-input" id="set-smtp-user" placeholder="login@yandex.ru"/>
+</div>
+</div>
+<div class="settings-row">
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Яндекс пароль приложения</label>
+<input class="crm-input" id="set-smtp-pass" placeholder="••••••••••••••••" type="password"/>
+</div>
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Тип уведомлений</label>
+<select class="crm-input" id="set-notify">
+<option value="all">Все (заказы + заявки + звонки)</option>
+<option value="orders">Только заказы</option>
+<option value="important">Заказы + заявки</option>
+</select>
+</div>
+</div>
+<button class="crm-btn crm-btn-primary" onclick="saveSettings()">Сохранить настройки</button>
+<button class="crm-btn crm-btn-ghost" onclick="testEmail()" style="margin-left:8px;">Тест отправки</button>
+<div id="settings-msg" style="display:none;margin-top:10px;font-size:13px;padding:8px 12px;border-radius:6px;"></div>
+</div>
+<div class="settings-section">
+<h3>Смена пароля</h3>
+<div class="settings-row">
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Новый пароль</label>
+<input class="crm-input" id="new-pass" placeholder="Минимум 8 символов" type="password"/>
+</div>
+<div>
+<label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Повторите пароль</label>
+<input class="crm-input" id="new-pass2" placeholder="Повтор" type="password"/>
+</div>
+</div>
+<button class="crm-btn crm-btn-primary" onclick="changePassword()">Изменить пароль</button>
+</div>
+<div class="settings-section">
+<h3>API бэкенд</h3>
+<div style="font-size:13px;color:#8a96ae;line-height:1.7;">
+<div>Endpoint: <code style="background:#f5f7fa;padding:2px 6px;border-radius:4px;">/api/order</code> — приём заказов из корзины</div>
+<div>Endpoint: <code style="background:#f5f7fa;padding:2px 6px;border-radius:4px;">/api/lead</code> — заявки на цену и формы товара</div>
+<div>Endpoint: <code style="background:#f5f7fa;padding:2px 6px;border-radius:4px;">/api/callback</code> — заявки на звонок (header/footer модалка)</div>
+<div>Endpoint: <code style="background:#f5f7fa;padding:2px 6px;border-radius:4px;">/api/entries</code> — список всех заявок (GET, только с токеном)</div>
+<div style="margin-top:8px;">Бэкенд: <strong>FastAPI + SQLite</strong>. Файл: <code>api_server.py</code>. Запуск: <code>python api_server.py</code></div>
+<div>Настройки SMTP хранятся в <code>api_config.json</code> рядом с сервером.</div>
+</div>
+</div>
+</div>
+</div><!-- /crm-content -->
+</div><!-- /crm-main -->
+</div><!-- /crm-app -->
+<!-- Detail Modal -->
+<div class="crm-modal-overlay" id="detailModal">
+<div class="crm-modal">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+<div class="crm-modal__title" id="modal-title">Детали заявки</div>
+<button onclick="closeModal()" style="background:none;border:none;cursor:pointer;color:#8a96ae;">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="20"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
+</button>
+</div>
+<div id="modal-body"></div>
+<hr class="crm-divider"/>
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+<select class="crm-input" id="modal-status-select" style="width:auto;flex:1;">
+<option value="new">Новый</option>
+<option value="processing">В работе</option>
+<option value="done">Выполнен</option>
+<option value="canceled">Отменён</option>
+</select>
+<button class="crm-btn crm-btn-primary" onclick="updateStatus()">Сохранить статус</button>
+<button class="crm-btn crm-btn-ghost" onclick="closeModal()">Закрыть</button>
+</div>
+</div>
+</div>
+<script>
+const API = window.EPM_API || 'http://localhost:8000';
+let TOKEN = '';
+let ALL_DATA = { orders: [], leads: [], callbacks: [] };
+let CURRENT_ENTRY = null;
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+function doLogin() {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  
+  // Auth через API (с fallback на demo)
+  fetch(API + '/api/auth', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ username: user, password: pass })
+  }).then(r => r.json()).then(d => {
+    if (d.token) {
+      TOKEN = d.token;
+      document.getElementById('crm-login').style.display = 'none';
+      document.getElementById('crm-app').style.display = 'grid';
+      loadAllData();
+      startClock();
+    } else {
+      err.style.display = 'block';
+      err.textContent = 'Неверный логин или пароль';
+    }
+  }).catch(() => {
+    // Бэкенд недоступен — входим в demo-режим
+    TOKEN = 'demo-token';
+    document.getElementById('crm-login').style.display = 'none';
+    document.getElementById('crm-app').style.display = 'grid';
+    loadAllData();
+    startClock();
+    err.style.display = 'block';
+    err.textContent = 'Бэкенд недоступен. Показаны demo-данные. Для реальных заявок запустите api_server.py и перезайдите.';
+  });
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+  TOKEN = '';
+  document.getElementById('crm-app').style.display = 'none';
+  document.getElementById('crm-login').style.display = 'flex';
+}
+
+// ─── Pages ──────────────────────────────────────────────────────────────────
+const PAGES = ['dashboard','orders','leads','callbacks','analytics','settings'];
+const PAGE_TITLES = {dashboard:'Дашборд',orders:'Заказы',leads:'Заявки на цену',callbacks:'Обратные звонки',analytics:'Аналитика',settings:'Настройки'};
+
+function showPage(name) {
+  PAGES.forEach(p => {
+    document.getElementById('page-'+p).style.display = p===name?'':'none';
+  });
+  document.getElementById('crm-page-title').textContent = PAGE_TITLES[name] || name;
+  document.querySelectorAll('.crm-nav-item').forEach((el, i) => {
+    const pageName = ['dashboard','orders','leads','callbacks','analytics','settings'][i];
+    el.classList.toggle('active', pageName === name);
+  });
+  if (name === 'analytics') renderAnalytics();
+}
+
+// ─── Data loading ────────────────────────────────────────────────────────────
+async function loadAllData() {
+  if (TOKEN === 'demo-token') {
+    // Demo-режим без сервера — показываем демо-данные
+    ALL_DATA = getDemoData();
+    renderAll();
+    return;
+  }
+  try {
+    const res = await fetch(API + '/api/entries', {
+      headers: { 'Authorization': 'Bearer ' + TOKEN }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      ALL_DATA.orders   = data.filter(d => d.type === 'order');
+      ALL_DATA.leads    = data.filter(d => d.type === 'price_request' || d.type === 'lead');
+      ALL_DATA.callbacks = data.filter(d => d.type === 'callback');
+    } else {
+      showApiError('Ошибка загрузки данных: ' + res.status);
+    }
+  } catch(e) {
+    showApiError('Не удалось подключиться к бэкенду (' + API + '). Проверьте что api_server.py запущен.');
+  }
+  renderAll();
+}
+
+function showApiError(msg) {
+  const bar = document.getElementById('epmApiError');
+  if (bar) { bar.textContent = msg; bar.style.display = 'block'; }
+}
+
+function getDemoData() {
+  const now = Date.now();
+  const day = 86400000;
+  return {
+    orders: [
+      {id:1, type:'order', name:'ООО Металлстрой', company:'Металлстрой', phone:'+7 (903) 123-45-67', email:'info@ms.ru', address:'Москва, ул. Ленина, 5', comment:'Нужен счёт', items:[{title:'Арматура А500С 10мм', qty:2, priceNum:52442}], total:104884, status:'new', created_at: new Date(now - 1*day).toISOString()},
+      {id:2, type:'order', name:'ИП Сидоров В.А.', company:'', phone:'+7 (916) 987-65-43', email:'', address:'', comment:'', items:[{title:'Труба стальная 57×3', qty:5, priceNum:28000}], total:140000, status:'processing', created_at: new Date(now - 2*day).toISOString()},
+      {id:3, type:'order', name:'АО Строй Групп', company:'Строй Групп', phone:'+7 (495) 111-22-33', email:'sg@mail.ru', address:'Москва', comment:'Срочно', items:[{title:'Швеллер 14П', qty:10, priceNum:45000}], total:450000, status:'done', created_at: new Date(now - 3*day).toISOString()},
+    ],
+    leads: [
+      {id:4, type:'price_request', phone:'+7 (926) 555-11-22', product:'Балка двутавровая 20Б', page_url:'https://example.com/catalog/...', status:'new', created_at: new Date(now - 0.5*day).toISOString()},
+      {id:5, type:'price_request', phone:'+7 (903) 444-33-22', product:'Проволока нержавеющая', page_url:'https://example.com/catalog/...', status:'new', created_at: new Date(now - 1.2*day).toISOString()},
+    ],
+    callbacks: [
+      {id:6, type:'callback', name:'Иван', phone:'+7 (916) 222-33-44', comment:'Позвоните до 18:00', status:'new', created_at: new Date(now - 0.3*day).toISOString()},
+      {id:7, type:'callback', name:'Сергей', phone:'+7 (926) 777-88-99', comment:'', status:'processing', created_at: new Date(now - 4*day).toISOString()},
+    ]
+  };
+}
+
+function renderAll() {
+  renderStats();
+  renderRecentTable();
+  renderOrdersTable();
+  renderLeadsTable();
+  renderCallbacksTable();
+  updateBadges();
+}
+
+// ─── Stats ───────────────────────────────────────────────────────────────────
+function renderStats() {
+  const all = [...ALL_DATA.orders, ...ALL_DATA.leads, ...ALL_DATA.callbacks];
+  const today = new Date().toDateString();
+  const newToday = all.filter(e => new Date(e.created_at).toDateString() === today).length;
+  
+  document.getElementById('stat-orders').textContent = ALL_DATA.orders.length;
+  document.getElementById('stat-new').textContent = newToday;
+  document.getElementById('stat-leads').textContent = ALL_DATA.leads.length;
+  document.getElementById('stat-callbacks').textContent = ALL_DATA.callbacks.length;
+  
+  // Bar chart — последние 7 дней
+  const chartEl = document.getElementById('chart-days');
+  chartEl.innerHTML = '';
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const ds = d.toDateString();
+    const count = all.filter(e => new Date(e.created_at).toDateString() === ds).length;
+    days.push({ label: d.toLocaleDateString('ru', {day:'numeric',month:'short'}), count });
+  }
+  const max = Math.max(...days.map(d=>d.count), 1);
+  days.forEach(d => {
+    const h = Math.max(d.count / max * 80, d.count > 0 ? 8 : 2);
+    chartEl.innerHTML += `<div class="bar-col"><div class="bar-val">${d.count || ''}</div><div class="bar-fill" style="height:${h}px;background:${d.count?'#001952':'#e8ecf4'};"></div><div class="bar-label">${d.label}</div></div>`;
+  });
+  
+  // Types chart
+  const typesEl = document.getElementById('chart-types');
+  const types = [
+    {label:'Заказы', count: ALL_DATA.orders.length, color:'#001952'},
+    {label:'Запросы цены', count: ALL_DATA.leads.length, color:'#8B1A1A'},
+    {label:'Звонки', count: ALL_DATA.callbacks.length, color:'#22c55e'},
+  ];
+  const maxT = Math.max(...types.map(t=>t.count), 1);
+  typesEl.innerHTML = types.map(t => `
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span style="color:#8a96ae;">${t.label}</span><span style="font-weight:700;color:#001952;">${t.count}</span>
+      </div>
+      <div style="height:6px;background:#f0f3f9;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${t.count/maxT*100}%;background:${t.color};border-radius:3px;transition:width .4s;"></div>
+      </div>
+    </div>`).join('');
+}
+
+function updateBadges() {
+  const newOrders = ALL_DATA.orders.filter(e => e.status === 'new').length;
+  const newLeads = ALL_DATA.leads.filter(e => e.status === 'new').length;
+  const newCallbacks = ALL_DATA.callbacks.filter(e => e.status === 'new').length;
+  
+  ['orders','leads','callbacks'].forEach((type, i) => {
+    const counts = [newOrders, newLeads, newCallbacks];
+    const el = document.getElementById('badge-'+type);
+    if (counts[i] > 0) { el.textContent = counts[i]; el.style.display = ''; }
+    else el.style.display = 'none';
+  });
+}
+
+// ─── Tables ──────────────────────────────────────────────────────────────────
+function statusBadge(s) {
+  const map = {new:'status-new',processing:'status-processing',done:'status-done',canceled:'status-canceled'};
+  const labels = {new:'Новый',processing:'В работе',done:'Выполнен',canceled:'Отменён'};
+  return `<span class="status-badge ${map[s]||'status-new'}">${labels[s]||s}</span>`;
+}
+
+function fmtDate(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleString('ru', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function renderRecentTable() {
+  const all = [...ALL_DATA.orders, ...ALL_DATA.leads, ...ALL_DATA.callbacks]
+    .sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10);
+  const typeLabels = {order:'Заказ', price_request:'Запрос цены', callback:'Звонок'};
+  document.getElementById('recent-tbody').innerHTML = all.map(e => `
+    <tr onclick="openDetail('${e.type}', ${e.id})" style="cursor:pointer;">
+      <td>#${e.id}</td>
+      <td><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:#f0f2f8;color:#001952;">${typeLabels[e.type]||e.type}</span></td>
+      <td>${e.phone || (e.email||'—')}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.product || e.comment || (e.items?e.items[0]?.title:'') || '—'}</td>
+      <td>${statusBadge(e.status||'new')}</td>
+      <td>${fmtDate(e.created_at)}</td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:#8a96ae;padding:24px;">Нет заявок</td></tr>';
+}
+
+function renderOrdersTable() {
+  document.getElementById('orders-tbody').innerHTML = ALL_DATA.orders
+    .sort((a,b) => new Date(b.created_at)-new Date(a.created_at))
+    .map(e => `
+    <tr data-status="${e.status||'new'}">
+      <td>#${e.id}</td>
+      <td style="font-weight:600;">${e.name||'—'}</td>
+      <td>${e.company||'—'}</td>
+      <td><a href="tel:${e.phone}" style="color:#001952;">${e.phone||'—'}</a></td>
+      <td style="font-size:12px;">${e.items ? e.items.length + ' позиций' : '—'}</td>
+      <td style="font-weight:700;">${e.total ? e.total.toLocaleString('ru') + ' ₽' : 'По запросу'}</td>
+      <td>${statusBadge(e.status||'new')}</td>
+      <td>${fmtDate(e.created_at)}</td>
+      <td><button class="crm-btn crm-btn-ghost" onclick="event.stopPropagation();openDetail('order',${e.id})">Детали</button></td>
+    </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;color:#8a96ae;padding:24px;">Нет заказов</td></tr>';
+}
+
+function renderLeadsTable() {
+  document.getElementById('leads-tbody').innerHTML = ALL_DATA.leads
+    .sort((a,b) => new Date(b.created_at)-new Date(a.created_at))
+    .map(e => `
+    <tr>
+      <td>#${e.id}</td>
+      <td><a href="tel:${e.phone}" style="color:#001952;">${e.phone||'—'}</a></td>
+      <td style="font-weight:600;">${e.product||'—'}</td>
+      <td style="font-size:11px;color:#8a96ae;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.page_url||'—'}</td>
+      <td>${statusBadge(e.status||'new')}</td>
+      <td>${fmtDate(e.created_at)}</td>
+      <td><button class="crm-btn crm-btn-ghost" onclick="openDetail('price_request',${e.id})">Обработать</button></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:#8a96ae;padding:24px;">Нет заявок</td></tr>';
+}
+
+function renderCallbacksTable() {
+  document.getElementById('callbacks-tbody').innerHTML = ALL_DATA.callbacks
+    .sort((a,b) => new Date(b.created_at)-new Date(a.created_at))
+    .map(e => `
+    <tr>
+      <td>#${e.id}</td>
+      <td>${e.name||'—'}</td>
+      <td><a href="tel:${e.phone}" style="color:#001952;">${e.phone||'—'}</a></td>
+      <td style="font-size:12px;color:#8a96ae;">${e.comment||'—'}</td>
+      <td>${statusBadge(e.status||'new')}</td>
+      <td>${fmtDate(e.created_at)}</td>
+      <td><button class="crm-btn crm-btn-ghost" onclick="openDetail('callback',${e.id})">Обработать</button></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:#8a96ae;padding:24px;">Нет звонков</td></tr>';
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+function renderAnalytics() {
+  const all = [...ALL_DATA.orders, ...ALL_DATA.leads, ...ALL_DATA.callbacks];
+  document.getElementById('a-total').textContent = all.length;
+  document.getElementById('a-orders').textContent = ALL_DATA.orders.length;
+  document.getElementById('a-leads').textContent = ALL_DATA.leads.length;
+  const conv = ALL_DATA.orders.length && all.length ? Math.round(ALL_DATA.orders.length/all.length*100) + '%' : '0%';
+  document.getElementById('a-conv').textContent = conv;
+  
+  // Top products
+  const prods = {};
+  ALL_DATA.leads.forEach(l => { if(l.product) prods[l.product] = (prods[l.product]||0)+1; });
+  ALL_DATA.orders.forEach(o => { (o.items||[]).forEach(i => { if(i.title) prods[i.title] = (prods[i.title]||0)+1; }); });
+  const sorted = Object.entries(prods).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxP = sorted.length ? sorted[0][1] : 1;
+  document.getElementById('top-products').innerHTML = sorted.map(([name, cnt]) => `
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+        <span style="color:#333;">${name}</span><span style="font-weight:700;">${cnt}</span>
+      </div>
+      <div style="height:5px;background:#f0f3f9;border-radius:3px;">
+        <div style="height:100%;width:${cnt/maxP*100}%;background:#001952;border-radius:3px;"></div>
+      </div>
+    </div>`).join('') || '<div style="color:#8a96ae;font-size:13px;">Нет данных</div>';
+  
+  // Hours chart
+  const hours = Array(24).fill(0);
+  all.forEach(e => { if(e.created_at) hours[new Date(e.created_at).getHours()]++; });
+  const maxH = Math.max(...hours, 1);
+  const chartH = document.getElementById('chart-hours');
+  chartH.innerHTML = hours.map((c,h) => `
+    <div class="bar-col" style="gap:2px;">
+      <div class="bar-fill" style="height:${Math.max(c/maxH*60,c>0?4:1)}px;background:${c?'#001952':'#e8ecf4'};"></div>
+      <div class="bar-label" style="font-size:9px;">${h%6===0?h+'h':''}</div>
+    </div>`).join('');
+}
+
+// ─── Detail Modal ─────────────────────────────────────────────────────────────
+function openDetail(type, id) {
+  const list = type === 'order' ? ALL_DATA.orders : type === 'price_request' ? ALL_DATA.leads : ALL_DATA.callbacks;
+  const entry = list.find(e => e.id === id);
+  if (!entry) return;
+  CURRENT_ENTRY = entry;
+  
+  const titles = {order:'Заказ', price_request:'Заявка на цену', callback:'Обратный звонок'};
+  document.getElementById('modal-title').textContent = titles[type] + ' #' + id;
+  document.getElementById('modal-status-select').value = entry.status || 'new';
+  
+  let body = '';
+  if (type === 'order') {
+    body = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+        <div class="crm-field"><label>Клиент</label><div class="crm-field-val">${entry.name||'—'}</div></div>
+        <div class="crm-field"><label>Компания</label><div class="crm-field-val">${entry.company||'—'}</div></div>
+        <div class="crm-field"><label>Телефон</label><div class="crm-field-val"><a href="tel:${entry.phone}" style="color:#001952;">${entry.phone||'—'}</a></div></div>
+        <div class="crm-field"><label>Email</label><div class="crm-field-val">${entry.email||'—'}</div></div>
+        <div class="crm-field"><label>Адрес доставки</label><div class="crm-field-val">${entry.address||'—'}</div></div>
+        <div class="crm-field"><label>Дата</label><div class="crm-field-val">${fmtDate(entry.created_at)}</div></div>
+      </div>
+      ${entry.comment ? `<div class="crm-field"><label>Комментарий</label><div class="crm-field-val">${entry.comment}</div></div><hr class="crm-divider">` : ''}
+      <div class="crm-field"><label>Товары в заказе</label></div>
+      <table class="order-items-table"><thead><tr><th>Товар</th><th>Кол-во</th><th>Сумма</th></tr></thead>
+      <tbody>${(entry.items||[]).map(i=>`<tr><td>${i.title||'—'}</td><td>${i.qty||1}</td><td>${i.priceNum?((i.priceNum*(i.qty||1)).toLocaleString('ru')+' ₽'):'—'}</td></tr>`).join('')}</tbody></table>
+      <div style="text-align:right;font-size:15px;font-weight:700;color:#001952;margin-top:10px;">Итого: ${entry.total ? entry.total.toLocaleString('ru') + ' ₽' : 'По запросу'}</div>`;
+  } else if (type === 'price_request') {
+    body = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="crm-field"><label>Телефон</label><div class="crm-field-val"><a href="tel:${entry.phone}" style="color:#001952;">${entry.phone||'—'}</a></div></div>
+        <div class="crm-field"><label>Дата</label><div class="crm-field-val">${fmtDate(entry.created_at)}</div></div>
+        <div class="crm-field" style="grid-column:1/-1;"><label>Товар</label><div class="crm-field-val" style="font-weight:600;">${entry.product||'—'}</div></div>
+        <div class="crm-field" style="grid-column:1/-1;"><label>Страница</label><div class="crm-field-val"><a href="${entry.page_url}" target="_blank" style="color:#001952;font-size:12px;">${entry.page_url||'—'}</a></div></div>
+      </div>`;
+  } else {
+    body = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="crm-field"><label>Имя</label><div class="crm-field-val">${entry.name||'—'}</div></div>
+        <div class="crm-field"><label>Телефон</label><div class="crm-field-val"><a href="tel:${entry.phone}" style="color:#001952;">${entry.phone||'—'}</a></div></div>
+        <div class="crm-field" style="grid-column:1/-1;"><label>Комментарий</label><div class="crm-field-val">${entry.comment||'—'}</div></div>
+        <div class="crm-field"><label>Дата</label><div class="crm-field-val">${fmtDate(entry.created_at)}</div></div>
+      </div>`;
+  }
+  
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  CURRENT_ENTRY = null;
+}
+
+async function updateStatus() {
+  if (!CURRENT_ENTRY) return;
+  const newStatus = document.getElementById('modal-status-select').value;
+  CURRENT_ENTRY.status = newStatus;
+  
+  try {
+    await fetch(API + '/api/entries/' + CURRENT_ENTRY.id + '/status', {
+      method: 'PATCH', headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify({ status: newStatus })
+    });
+  } catch(e) {}
+  
+  renderAll();
+  closeModal();
+}
+
+// ─── Filters ─────────────────────────────────────────────────────────────────
+function filterTable(tbodyId, query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#' + tbodyId + ' tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function filterStatus(type, status) {
+  document.querySelectorAll('#' + type + '-tbody tr').forEach(tr => {
+    tr.style.display = (!status || tr.dataset.status === status) ? '' : 'none';
+  });
+  document.querySelectorAll('.crm-filters-row .crm-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim().toLowerCase().includes(status || 'все'));
+  });
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────────
+function exportCSV(type) {
+  const data = ALL_DATA[type] || [];
+  if (!data.length) return alert('Нет данных для экспорта');
+  const keys = Object.keys(data[0]).filter(k => k !== 'items');
+  const rows = [keys.join(','), ...data.map(e => keys.map(k => '"' + (e[k]||'').toString().replace(/"/g,'""') + '"').join(','))];
+  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = type + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+async function saveSettings() {
+  const settings = {
+    email: document.getElementById('set-email').value,
+    smtp_user: document.getElementById('set-smtp-user').value,
+    smtp_pass: document.getElementById('set-smtp-pass').value,
+    notify: document.getElementById('set-notify').value
+  };
+  const msg = document.getElementById('settings-msg');
+  try {
+    const res = await fetch(API + '/api/settings', {
+      method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+      body: JSON.stringify(settings)
+    });
+    msg.style.display = 'block';
+    if (res.ok) { msg.style.background='#f0fdf4';msg.style.color='#166534';msg.textContent='✔ Настройки сохранены'; }
+    else throw new Error();
+  } catch(e) {
+    msg.style.display = 'block'; msg.style.background='#fff0f0'; msg.style.color='#991b1b';
+    msg.textContent = 'Сервер недоступен. Настройки можно задать в api_config.json';
+  }
+}
+
+async function testEmail() {
+  const msg = document.getElementById('settings-msg');
+  try {
+    const res = await fetch(API + '/api/test-email', {
+      method: 'POST', headers: {'Authorization':'Bearer '+TOKEN}
+    });
+    msg.style.display = 'block';
+    if (res.ok) { msg.style.background='#f0fdf4';msg.style.color='#166534';msg.textContent='✔ Тестовое письмо отправлено'; }
+    else throw new Error();
+  } catch(e) {
+    msg.style.display = 'block'; msg.style.background='#fff0f0'; msg.style.color='#991b1b';
+    msg.textContent = 'Не удалось отправить. Проверьте настройки SMTP.';
+  }
+}
+
+function changePassword() {
+  const p1 = document.getElementById('new-pass').value;
+  const p2 = document.getElementById('new-pass2').value;
+  if (p1 !== p2) return alert('Пароли не совпадают');
+  if (p1.length < 8) return alert('Пароль должен быть не менее 8 символов');
+  fetch(API + '/api/change-password', {
+    method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+    body: JSON.stringify({ password: p1 })
+  }).then(() => alert('Пароль изменён')).catch(() => alert('Ошибка. Запишите пароль и задайте его в api_config.json'));
+}
+
+// ─── Clock ────────────────────────────────────────────────────────────────────
+function startClock() {
+  function tick() {
+    document.getElementById('crm-time').textContent = new Date().toLocaleTimeString('ru');
+  }
+  tick(); setInterval(tick, 1000);
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+<footer class="epm-footer">
+<div class="container">
+<div class="epm-footer__wrapper">
+<a class="epm-footer__logo" href="../index.html">
+<img alt="ЕРМ" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" src="/eternoprom//ЕРМ.png"/>
+</a>
+<div class="epm-footer__contacts">
+<a class="epm-footer__subtitle" href="../contacts.html">Контакты</a>
+<div class="epm-footer__contacts-item">
+<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 6.28576C11.2808 6.28576 10.5777 6.49522 9.97974 6.88766C9.38175 7.2801 8.91567 7.83788 8.64044 8.49048C8.36521 9.14308 8.2932 9.86118 8.43351 10.554C8.57382 11.2468 8.92015 11.8832 9.4287 12.3826C9.93726 12.8821 10.5852 13.2223 11.2906 13.3601C11.996 13.4979 12.7271 13.4271 13.3916 13.1568C14.056 12.8865 14.624 12.4287 15.0235 11.8414C15.4231 11.2541 15.6364 10.5636 15.6364 9.85722C15.6364 8.91001 15.2532 8.00159 14.5713 7.33182C13.8893 6.66204 12.9644 6.28576 12 6.28576ZM12 12.0001C11.5685 12.0001 11.1466 11.8744 10.7878 11.639C10.429 11.4035 10.1494 11.0688 9.98426 10.6773C9.81913 10.2857 9.77592 9.85484 9.86011 9.43917C9.94429 9.02349 11.1511 7.8382 11.5743 7.75552C11.9976 7.67283 12.4363 7.71527 12.8349 7.87746C13.2336 8.03965 13.5744 8.31431 13.8141 8.6667C14.0539 9.0191 14.1818 9.4334 14.1818 9.85722C14.1818 10.4255 13.9519 10.9706 13.5428 11.3725C13.1336 11.7743 12.5787 12.0001 12 12.0001ZM12 2C9.87901 2.00236 7.84557 2.83093 6.3458 4.30394C4.84603 5.77694 4.00241 7.77408 4 9.85722C4 12.6608 5.31909 15.6323 7.81818 18.4511C8.94111 19.7248 10.205 20.8717 11.5864 21.8707C11.7086 21.9549 11.8543 22 12.0036 22C12.1529 22 12.2986 21.9549 12.4209 21.8707C13.7998 20.8713 15.0612 19.7244 16.1818 18.4511C18.6773 15.6323 20 12.6608 20 9.85722C19.9976 7.77408 19.154 5.77694 17.6542 4.30394C16.1544 2.83093 14.121 2.00236 12 2ZM12 20.393C10.4973 19.2323 5.45455 14.9689 5.45455 9.85722C5.45455 8.15224 6.14415 6.51709 7.37166 5.31149C8.59918 4.10589 10.264 3.42859 12 3.42859C13.736 3.42859 15.4008 4.10589 16.6283 5.31149C17.8558 6.51709 18.5455 8.15224 18.5455 9.85722C18.5455 14.9671 13.5027 19.2323 12 20.393Z" fill="white"></path>
+</svg>
+<div>
+<p>г. Москва, Хлебозаводский проезд, 7, стр. 9, 115230 • помещение 42/н</p>
+<p>Пн-Пт: с 09:00 — 18:00</p>
+</div>
+</div>
+<div class="epm-footer__contacts-item">
+<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M20.8472 14.8554L16.4306 12.8764L16.4184 12.8707C16.1891 12.7727 15.939 12.7333 15.6907 12.7562C15.4424 12.7792 15.2037 12.8636 14.9962 13.002C14.9718 13.0181 14.9483 13.0356 14.9259 13.0545L12.6441 14.9998C11.1984 14.2976 9.70593 12.8164 9.00374 11.3895L10.9519 9.07294C10.9706 9.0495 10.9884 9.02606 11.0053 9.00075C11.1407 8.79384 11.2229 8.55667 11.2444 8.31035C11.266 8.06402 11.2264 7.81618 11.1291 7.58887V7.57762L9.14437 3.15356C9.01569 2.85662 8.79442 2.60926 8.51361 2.44841C8.23279 2.28756 7.90748 2.22184 7.58624 2.26106C6.3159 2.42822 5.14985 3.05209 4.30587 4.01615C3.46189 4.98021 2.9977 6.21852 2.99999 7.49981C2.99999 14.9436 9.05624 20.9998 16.5 20.9998C17.7813 21.0021 19.0196 20.5379 19.9837 19.6939C20.9477 18.85 21.5716 17.6839 21.7387 16.4136C21.778 16.0924 21.7125 15.7672 21.5518 15.4864C21.3911 15.2056 21.1439 14.9843 20.8472 14.8554ZM16.5 19.4998C13.3185 19.4963 10.2682 18.2309 8.01855 15.9813C5.76886 13.7316 4.50347 10.6813 4.49999 7.49981C4.49647 6.58433 4.82629 5.69887 5.42787 5.00879C6.02945 4.3187 6.86165 3.87118 7.76906 3.74981C7.76868 3.75355 7.76868 3.75732 7.76906 3.76106L9.73781 8.16731L7.79999 10.4867C7.78028 10.5093 7.76242 10.5334 7.74656 10.5589C7.60548 10.7754 7.52271 11.0246 7.50629 11.2825C7.48986 11.5404 7.54033 11.7981 7.65281 12.0307C8.50218 13.7679 10.2525 15.5051 12.0084 16.3536C12.2428 16.465 12.502 16.5137 12.7608 16.495C13.0196 16.4762 13.2691 16.3907 13.485 16.2467C13.5091 16.2305 13.5323 16.213 13.5544 16.1942L15.8334 14.2498L20.2397 16.2232H20.25C20.1301 17.1319 19.6833 17.9658 18.993 18.5689C18.3028 19.172 17.4165 19.5029 16.5 19.4998Z" fill="white"></path>
+</svg>
+<div>
+<a class="accent" href="tel:+74992262325">ㅤ</a>
+<a href="tel:88007751296">+7 (933) 993 87 77</a>
+</div>
+</div>
+<div class="epm-footer__contacts-item">
+<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21.2308 5H2.76923C2.56522 5 2.36956 5.07902 2.2253 5.21967C2.08104 5.36032 2 5.55109 2 5.75V18.5C2 18.8978 2.16209 19.2794 2.4506 19.5607C2.73912 19.842 3.13044 20 3.53846 20H20.4615C20.8696 20 21.2609 19.842 21.5494 19.5607C21.8379 19.2794 22 18.8978 22 18.5V5.75C22 5.55109 21.919 5.36032 21.7747 5.21967C21.6304 5.07902 21.4348 5 21.2308 5ZM19.2529 6.5L12 12.9828L4.74712 6.5H19.2529ZM20.4615 18.5H3.53846V7.45531L11.4798 14.5531C11.6217 14.6801 11.8074 14.7506 12 14.7506C12.1926 14.7506 12.3783 14.6801 12.5202 14.5531L20.4615 7.45531V18.5Z" fill="white"></path>
+</svg>
+<a class="accent" href="mailto:sales@erm-group.ru">sales@erm-group.ru</a>
+</div>
+</div>
+<div class="epm-footer__catalog">
+<a class="epm-footer__subtitle" href="../catalog.html">Каталог</a>
+<ul>
+<li><a href="../catalog/trubnyj-prokat/">Трубный прокат</a></li>
+<li><a href="../catalog/fasonnyj-prokat/">Фасонный прокат</a></li>
+<li><a href="../catalog/setki-metallicheskie/">Сетки металлические</a></li>
+<li><a href="../catalog/sortovoj-prokat/">Сортовой прокат</a></li>
+<li><a href="../catalog/listovoj-prokat/">Листовой прокат</a></li>
+<li><a href="../catalog/kabeli-i-provoda/">Кабели и провода</a></li>
+<li><a href="../catalog/provoloka/">Проволока</a></li>
+<li><a href="../catalog/polimery/">Полимеры</a></li>
+</ul>
+</div>
+<div class="epm-footer__services">
+<a class="epm-footer__subtitle" href="../services.html">Услуги</a>
+<ul>
+<li><a href="../services.html">ППУ изоляция труб</a></li>
+<li><a href="../services.html">Контактная сварка</a></li>
+<li><a href="../services.html">Резка металла гильотинная</a></li>
+<li><a href="../services.html">Резка металла гидроабразивная</a></li>
+<li><a href="../services.html">Термообработка металла</a></li>
+</ul>
+</div>
+<div class="epm-footer__clients">
+<a class="epm-footer__subtitle" href="../delivery.html">Доставка и оплата</a>
+<a class="epm-footer__subtitle" href="../about.html">О компании</a>
+<span class="epm-footer__subtitle">Документация</span>
+<ul>
+<li><a href="../oferta.html">Оферта</a></li>
+<li><a href="../policy.html">Политика конфиденциальности</a></li>
+</ul>
+</div>
+<div class="epm-footer__offer">
+<p>Внимание, размещенная информация не является публичной офертой, подробнее можно ознакомиться <a href="../oferta.html">здесь.</a></p>
+<span>Цены носят информационный характер, наличие товара уточняйте у менеджера</span>
+</div>
+<div class="epm-footer__copyright">
+<span>©ЕРМ, 2026</span>
+
+</div>
+</div>
+</div>
+</footer>
+<div id="epmModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,25,82,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+<div style="background:#fff;border-radius:16px;padding:40px;max-width:420px;width:100%;position:relative;">
+<button onclick="document.getElementById('epmModal').style.display='none'" style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#999;font-size:20px;line-height:1;">✕</button>
+<h3 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#001952;">Заказать звонок</h3>
+<p style="margin:0 0 20px;font-size:14px;color:#666;">Менеджер свяжется с вами в течение 15 минут</p>
+<form id="epmCallbackForm">
+<div style="display:flex;flex-direction:column;gap:12px;">
+<input name="name" placeholder="Ваше имя" required="" style="padding:12px 14px;border:1px solid #dde3f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" type="text"/>
+<input name="phone" placeholder="+7 (___) ___-__-__" required="" style="padding:12px 14px;border:1px solid #dde3f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" type="tel"/>
+<textarea name="comment" placeholder="Комментарий (необязательно)" rows="2" style="padding:12px 14px;border:1px solid #dde3f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;resize:none;"></textarea>
+<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#666;cursor:pointer;">
+<input required="" style="margin-top:2px;flex-shrink:0;" type="checkbox"/>
+          Я даю согласие на обработку персональных данных
+        </label>
+<button id="epmCallbackBtn" style="background:#8B1A1A;color:#fff;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;" type="submit">Отправить</button>
+<div id="epmCallbackMsg" style="display:none;font-size:13px;text-align:center;padding:10px;border-radius:6px;"></div>
+</div>
+</form>
+</div>
+</div>
+<script>
+(function(){
+  var form=document.getElementById('epmCallbackForm');
+  if(!form||form._cbInit)return;
+  form._cbInit=true;
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    var btn=document.getElementById('epmCallbackBtn');
+    var msg=document.getElementById('epmCallbackMsg');
+    btn.disabled=true;btn.textContent='Отправляем...';
+    try{
+      var res=await fetch((window.EPM_API||'')+'/api/callback',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({type:'callback',name:form.name.value.trim(),phone:form.phone.value.trim(),comment:form.comment.value.trim()})
+      });
+      msg.style.display='block';
+      if(res.ok){msg.style.background='#f0fdf4';msg.style.color='#166534';msg.textContent='✔ Спасибо! Мы перезвоним вам в течение 15 минут.';form.reset();setTimeout(function(){document.getElementById('epmModal').style.display='none';msg.style.display='none';},3000);}
+      else throw new Error();
+    }catch(err){
+      msg.style.display='block';msg.style.background='#fff0f0';msg.style.color='#991b1b';
+      msg.textContent='Ошибка. Позвоните: +7 (933) 993 87 77';
+    }
+    btn.disabled=false;btn.textContent='Отправить';
+  });
+})();
+</script>
+</body>
+</html>

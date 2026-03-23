@@ -1,0 +1,176 @@
+/* ============================================================
+   EPM HEADER — белая тема
+   ============================================================ */
+
+.epm-header {
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 #e8ecf4, 0 2px 12px rgba(0, 25, 82, 0.07);
+}
+
+.epm-header__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* ── Логотип ── */
+.epm-logo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.epm-logo img {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* Текстовая заглушка если нет картинки */
+.epm-logo--placeholder {
+  font-size: 22px;
+  font-weight: 700;
+  color: #001952;
+  letter-spacing: 0.04em;
+}
+
+.epm-logo--placeholder span {
+  color: #8B1A1A;
+}
+
+/* ── Навигация ── */
+.epm-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.epm-nav__link {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: color 0.18s, background 0.18s;
+}
+
+.epm-nav__link:hover {
+  color: #001952;
+  background: #f0f3fb;
+}
+
+.epm-nav__link--active {
+  color: #001952;
+  font-weight: 600;
+  background: #eef1fb;
+}
+
+/* ── Правая часть: телефоны + кнопки ── */
+.epm-header__right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.epm-phones {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.epm-phone {
+  font-size: 13px;
+  font-weight: 600;
+  color: #001952;
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1.4;
+  transition: color 0.18s;
+}
+
+.epm-phone:hover {
+  color: #8B1A1A;
+}
+
+/* Кнопка корзины — инжектируется через cart.js */
+.epm-cart-btn {
+  position: relative;
+  background: #f0f3fb !important;
+  border: 1px solid #dde3f0 !important;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  color: #001952 !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.epm-cart-btn:hover {
+  background: #e4e9f8 !important;
+  border-color: #c5cfed !important;
+}
+
+/* Кнопка «Заказать звонок» */
+.epm-call-btn {
+  background:  #56A7FF;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+}
+
+.epm-call-btn:hover {
+  background: #56A7FF;
+  transform: translateY(-1px);
+}
+
+.epm-call-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Мобильное меню ── */
+@media (max-width: 1024px) {
+  .epm-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .epm-header__inner {
+    padding: 0 16px;
+    height: 58px;
+    gap: 16px;
+  }
+
+  .epm-phones {
+    display: none;
+  }
+
+  .epm-call-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}

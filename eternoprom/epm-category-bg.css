@@ -1,0 +1,224 @@
+/* ============================================================
+   Фоновые изображения карточек категорий
+   Используем id-селекторы (специфичность 0,1,0,0)
+   чтобы безопасно перекрыть базовые стили .category-card
+   ============================================================ */
+
+/* Общие настройки фона для всех карточек с фото */
+#cat-truby,
+#cat-fasonnyj,
+#cat-provoloka,
+#cat-setki,
+#cat-sortovoj,
+#cat-listovoj,
+#cat-kabeli,
+#cat-kanaty,
+#cat-polimery {
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Затемняющий оверлей поверх фото — текст остаётся читаемым */
+#cat-truby::before,
+#cat-fasonnyj::before,
+#cat-provoloka::before,
+#cat-setki::before,
+#cat-sortovoj::before,
+#cat-listovoj::before,
+#cat-kabeli::before,
+#cat-kanaty::before,
+#cat-polimery::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 25, 82, 0.55); /* тёмно-синий в тон фирменному стилю */
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Контент карточки поверх оверлея */
+#cat-truby > *,
+#cat-fasonnyj > *,
+#cat-provoloka > *,
+#cat-setki > *,
+#cat-sortovoj > *,
+#cat-listovoj > *,
+#cat-kabeli > *,
+#cat-kanaty > *,
+#cat-polimery > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Делаем текст светлым на фоне фото */
+#cat-truby .category-name,
+#cat-fasonnyj .category-name,
+#cat-provoloka .category-name,
+#cat-setki .category-name,
+#cat-sortovoj .category-name,
+#cat-listovoj .category-name,
+#cat-kabeli .category-name,
+#cat-kanaty .category-name,
+#cat-polimery .category-name {
+  color: #ffffff;
+}
+
+#cat-truby .category-items a,
+#cat-fasonnyj .category-items a,
+#cat-provoloka .category-items a,
+#cat-setki .category-items a,
+#cat-sortovoj .category-items a,
+#cat-listovoj .category-items a,
+#cat-kabeli .category-items a,
+#cat-kanaty .category-items a,
+#cat-polimery .category-items a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+#cat-truby .category-more,
+#cat-fasonnyj .category-more,
+#cat-provoloka .category-more,
+#cat-setki .category-more,
+#cat-sortovoj .category-more,
+#cat-listovoj .category-more,
+#cat-kabeli .category-more,
+#cat-kanaty .category-more,
+#cat-polimery .category-more {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* --- Индивидуальные фото --- */
+/* Сейчас у тебя есть только двутавры.jpg — применяем к фасонному прокату */
+#cat-fasonnyj {
+  background-image: url('/eternoprom/img_main/dvu.jpg');
+}
+#cat-truby {
+   background-image: url('/eternoprom/img_main/trub.jpg'); 
+}       
+#cat-listovoj {
+   background-image: url('/eternoprom/img_main/list.jpg');
+ }       
+#cat-sortovoj {
+   background-image: url('/eternoprom/img_main/krug.jpg'); 
+}      
+#cat-setki {
+   background-image: url('/eternoprom/img_main/setka.jpg');
+}       
+#cat-provoloka {
+   background-image: url('/eternoprom/img_main/provo.jpg');
+}   
+#cat-kabeli {
+   background-image: url('/eternoprom/img_main/kabel.jpg');
+}      
+#cat-kanaty {
+  background-image: url('/eternoprom/img_main/kanat.jpg');
+}      
+#cat-polimery {
+   background-image: url('/eternoprom/img_main/polimer.jpg'); 
+}    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* === Новые карточки каталога (catalog.html) === */
+
+#cat-rulonnyj,
+#cat-splavy,
+#cat-cvetnye,
+#cat-chugun,
+#cat-stal,
+#cat-zhelezo,
+#cat-kompozity,
+#cat-poroshki {
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#cat-rulonnyj::before,
+#cat-splavy::before,
+#cat-cvetnye::before,
+#cat-chugun::before,
+#cat-stal::before,
+#cat-zhelezo::before,
+#cat-kompozity::before,
+#cat-poroshki::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 25, 82, 0.55);
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+#cat-rulonnyj > *, #cat-splavy > *, #cat-cvetnye > *,
+#cat-chugun > *, #cat-stal > *, #cat-zhelezo > *,
+#cat-kompozity > *, #cat-poroshki > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+#cat-rulonnyj  { background-image: url('/eternoprom/img_main/rulon.jpg'); }   
+#cat-splavy    { background-image: url('/eternoprom/img_main/splavy.jpg'); }  
+#cat-cvetnye   { background-image: url('/eternoprom/img_main/powder.jpg'); } 
+#cat-chugun    { background-image: url('/eternoprom/img_main/chugun.jpg'); }  
+#cat-stal      { background-image: url('/eternoprom/img_main/stal.jpg'); }    
+#cat-zhelezo   { background-image: url('/eternoprom/img_main/zhb.jpg'); }     
+#cat-kompozity { background-image: url('/eternoprom/img_main/kevlar.jpg'); }  
+#cat-poroshki  { background-image: url('/eternoprom/img_main/powder.jpg'); }  
+
+
+.catalog-cat-name{
+    color:#ffffff;
+}
+.catalog-cat-card{
+    color: #ffffff;
+}
+.catalog-sublist li a{
+    color: #ffffff;
+}
+
+
+.catalog-cat-name,
+.catalog-cat-card,
+.catalog-sublist li a {
+    color: #ffffff;
+    transition: color 0.2s ease;
+    font-size: 20px;
+}
+
+.catalog-cat-name:hover,
+.catalog-cat-card:hover,
+.catalog-sublist li a:hover {
+    color: #a8d4f5;
+}
+
+.catalog-cat-name:hover {
+    color: #a8d4f5 !important;
+}
+
+.catalog-cat-name { color: #ffffff !important; }

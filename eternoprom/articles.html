@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Статьи о металлопрокате — ЕРМ</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="./base.css" rel="stylesheet"/>
+<link href="./style.css" rel="stylesheet"/>
+<script>window.EPM_API = '';</script>
+<script defer="" src="./cart.js"></script>
+<link href="./epm-header.css" rel="stylesheet"/>
+<link href="./epm-footer.css" rel="stylesheet"/>
+<style>
+/* ===== ARTICLE MODAL (READER) ===== */
+.article-reader-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 15, 50, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.article-reader-overlay.open {
+  display: flex;
+}
+
+.article-reader {
+  background: #fff;
+  width: 100%;
+  max-width: 820px;
+  margin: 40px auto;
+  border-radius: 16px;
+  position: relative;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  animation: readerSlideUp 0.3s ease-out;
+}
+@keyframes readerSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Close button */
+.reader-close {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px 0;
+}
+.reader-close-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.06);
+  color: #555;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+.reader-close-btn:hover {
+  background: rgba(0,0,0,0.12);
+  color: #111;
+}
+
+/* Article content */
+.reader-content {
+  padding: 8px 48px 40px;
+}
+.reader-badge {
+  display: inline-block;
+  background: #2776EA;
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.reader-title {
+  font-size: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+  font-weight: 800;
+  color: #001234;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.reader-meta {
+  font-size: 14px;
+  color: #718096;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.reader-meta svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Article prose */
+.reader-prose h2 {
+  font-size: clamp(1.15rem, 1rem + 0.5vw, 1.5rem);
+  font-weight: 700;
+  color: #001234;
+  margin: 32px 0 12px;
+  line-height: 1.3;
+}
+.reader-prose h3 {
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.2rem);
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 24px 0 8px;
+}
+.reader-prose p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #333;
+  margin-bottom: 16px;
+}
+.reader-prose ul, .reader-prose ol {
+  margin: 0 0 16px 20px;
+  list-style: disc;
+}
+.reader-prose ol { list-style: decimal; }
+.reader-prose li {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #333;
+  margin-bottom: 6px;
+}
+.reader-prose strong {
+  font-weight: 600;
+  color: #111;
+}
+.reader-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 24px;
+  font-size: 14px;
+}
+.reader-prose th {
+  background: #f0f4f8;
+  font-weight: 600;
+  color: #001234;
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid #d1d9e0;
+}
+.reader-prose td {
+  padding: 10px 14px;
+  border: 1px solid #d1d9e0;
+  color: #333;
+}
+.reader-prose .info-box {
+  background: #eef4ff;
+  border-left: 4px solid #2776EA;
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 20px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1a3a6a;
+}
+
+/* Navigation */
+.reader-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 48px 28px;
+  border-top: 1px solid #e8ecf0;
+  gap: 12px;
+}
+.reader-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid #d1d9e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  max-width: 45%;
+}
+.reader-nav-btn:hover {
+  border-color: #2776EA;
+  color: #2776EA;
+  background: #f5f8ff;
+}
+.reader-nav-btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.reader-nav-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.reader-nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reader-counter {
+  font-size: 13px;
+  color: #999;
+  white-space: nowrap;
+}
+
+/* Cards cursor */
+.article-card { cursor: pointer; }
+.article-card .article-title { pointer-events: none; }
+
+/* ===== MOBILE ADAPTIVE ===== */
+@media (max-width: 768px) {
+  .article-reader {
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    align-self: flex-end;
+    animation: readerSlideUpMobile 0.3s ease-out;
+  }
+  @keyframes readerSlideUpMobile {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .reader-content {
+    padding: 8px 20px 32px;
+  }
+  .reader-nav {
+    padding: 16px 20px 24px;
+    flex-wrap: wrap;
+  }
+  .reader-nav-btn {
+    max-width: 100%;
+    flex: 1;
+    justify-content: center;
+  }
+  .reader-counter {
+    width: 100%;
+    text-align: center;
+    order: -1;
+    margin-bottom: 8px;
+  }
+  .reader-prose table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .reader-title {
+    font-size: 1.35rem;
+  }
+  .reader-nav-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+</style>
+</head>
+<body>
+<header class="epm-header">
+<div class="epm-header__inner">
+<a class="epm-logo" href="./index.html">
+<img alt="ЕРМ" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" src="logo_evg.png"/>
+</a>
+<nav class="epm-nav">
+<a class="epm-nav__link" href="./catalog.html">Каталог</a>
+<a class="epm-nav__link" href="./services.html">Услуги</a>
+<a class="epm-nav__link" href="./delivery.html">Доставка и оплата</a>
+<a class="epm-nav__link" href="./articles.html">Статьи</a>
+<a class="epm-nav__link" href="./about.html">О компании</a>
+<a class="epm-nav__link" href="./contacts.html">Контакты</a>
+</nav>
+<div class="epm-header__right">
+<div class="epm-phones">
+<a class="epm-phone" href="tel:+74992262325">+7 (933) 993 87 77</a>
+<a class="epm-phone" href="tel:+74992262325">sales@erm-group.ru</a>
+
+</div>
+<button class="epm-call-btn" onclick="document.getElementById('epmModal').style.display='flex'">Заказать звонок</button>
+</div>
+</div>
+</header>
+
+<section class="page-hero">
+<div class="container">
+<div class="breadcrumb"><a href="./index.html">Главная</a><span class="breadcrumb-sep">/</span><span>Статьи</span></div>
+<h1 class="page-hero-title" style="margin-top:var(--space-3);">Статьи о металлопрокате</h1>
+</div>
+</section>
+
+<section class="section">
+<div class="container">
+
+<div class="articles-filters">
+<button class="filter-btn active" data-filter="all">Все статьи</button>
+<button class="filter-btn" data-filter="product">Продукция</button>
+<button class="filter-btn" data-filter="steel">Марки стали и стандарты</button>
+</div>
+
+<div class="articles-grid">
+
+<!-- Статья 1 -->
+<div class="article-card" data-article="0" data-category="product">
+<div class="article-img1">
+<span class="article-badge">Продукция</span>
+</div>
+<div class="article-body">
+<a class="article-title" href="#">Швеллер и двутавр: в чём разница и как выбрать</a>
+<span class="article-date">Март 2026</span>
+</div>
+</div>
+
+<!-- Статья 2 -->
+<div class="article-card" data-article="1" data-category="steel">
+<div class="article-img2">
+<span class="article-badge">Марки стали</span>
+</div>
+<div class="article-body">
+<a class="article-title" href="#">Как расшифровать марку стали?</a>
+<span class="article-date">Март 2026</span>
+</div>
+</div>
+
+<!-- Статья 3 -->
+<div class="article-card" data-article="2" data-category="product">
+<div class="article-img3">
+<span class="article-badge">Продукция</span>
+</div>
+<div class="article-body">
+<a class="article-title" href="#">Что такое металлопрокат?</a>
+<span class="article-date">Февраль 2026</span>
+</div>
+</div>
+
+<!-- Статья 4 -->
+<div class="article-card" data-article="3" data-category="product">
+<div class="article-img4">
+<span class="article-badge">Продукция</span>
+
+</div>
+<div class="article-body">
+<a class="article-title" href="#">Виды стальных труб: классификация и применение</a>
+<span class="article-date">Февраль 2026</span>
+</div>
+</div>
+
+<!-- Статья 5 -->
+<div class="article-card" data-article="4" data-category="steel">
+<div class="article-img5">
+<span class="article-badge">Марки стали</span>
+</div>
+<div class="article-body">
+<a class="article-title" href="#">Нержавеющая сталь: марки, свойства, применение</a>
+<span class="article-date">Январь 2026</span>
+</div>
+</div>
+
+<!-- Статья 6 -->
+<div class="article-card" data-article="5" data-category="product">
+<div class="article-img6">
+<span class="article-badge">Продукция</span>
+
+</div>
+<div class="article-body">
+<a class="article-title" href="#">Листовой прокат: виды, характеристики, подбор</a>
+<span class="article-date">Январь 2026</span>
+</div>
+</div>
+
+</div><!-- /articles-grid -->
+</div>
+</section>
+
+<!-- ===== ARTICLE READER MODAL ===== -->
+<div class="article-reader-overlay" id="articleReader">
+<div class="article-reader">
+<div class="reader-close">
+<button class="reader-close-btn" id="readerClose" title="Закрыть">✕</button>
+</div>
+<div class="reader-content" id="readerContent">
+<!-- Заполняется через JS -->
+</div>
+<div class="reader-nav">
+<button class="reader-nav-btn" id="readerPrev">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+<span class="reader-nav-label" id="prevLabel">Предыдущая</span>
+</button>
+<span class="reader-counter" id="readerCounter"></span>
+<button class="reader-nav-btn" id="readerNext">
+<span class="reader-nav-label" id="nextLabel">Следующая</span>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+</button>
+</div>
+</div>
+</div>
+
+<footer class="epm-footer">
+<div class="container">
+<div class="epm-footer__wrapper">
+ 
+<div class="epm-footer__contacts">
+<a class="epm-footer__subtitle" href="./contacts.html">Контакты</a>
+<div class="epm-footer__contacts-item">
+<svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M12 6.28576C11.2808 6.28576 10.5777 6.49522 9.97974 6.88766C9.38175 7.2801 8.91567 7.83788 8.64044 8.49048C8.36521 9.14308 8.2932 9.86118 8.43351 10.554C8.57382 11.2468 8.92015 11.8832 9.4287 12.3826C9.93726 12.8821 10.5852 13.2223 11.2906 13.3601C11.996 13.4979 12.7271 13.4271 13.3916 13.1568C14.056 12.8865 14.624 12.4287 15.0235 11.8414C15.4231 11.2541 15.6364 10.5636 15.6364 9.85722C15.6364 8.91001 15.2532 8.00159 14.5713 7.33182C13.8893 6.66204 12.9644 6.28576 12 6.28576ZM12 12.0001C11.5685 12.0001 11.1466 11.8744 10.7878 11.639C10.429 11.4035 10.1494 11.0688 9.98426 10.6773C9.81913 10.2857 9.77592 9.85484 9.86011 9.43917C9.94429 9.02349 11.1511 7.8382 11.5743 7.75552C11.9976 7.67283 12.4363 7.71527 12.8349 7.87746C13.2336 8.03965 13.5744 8.31431 13.8141 8.6667C14.0539 9.0191 14.1818 9.4334 14.1818 9.85722C14.1818 10.4255 13.9519 10.9706 13.5428 11.3725C13.1336 11.7743 12.5787 12.0001 12 12.0001ZM12 2C9.87901 2.00236 7.84557 2.83093 6.3458 4.30394C4.84603 5.77694 4.00241 7.77408 4 9.85722C4 12.6608 5.31909 15.6323 7.81818 18.4511C8.94111 19.7248 10.205 20.8717 11.5864 21.8707C11.7086 21.9549 11.8543 22 12.0036 22C12.1529 22 12.2986 21.9549 12.4209 21.8707C13.7998 20.8713 15.0612 19.7244 16.1818 18.4511C18.6773 15.6323 20 12.6608 20 9.85722C19.9976 7.77408 19.154 5.77694 17.6542 4.30394C16.1544 2.83093 14.121 2.00236 12 2ZM12 20.393C10.4973 19.2323 5.45455 14.9689 5.45455 9.85722C5.45455 8.15224 6.14415 6.51709 7.37166 5.31149C8.59918 4.10589 10.264 3.42859 12 3.42859C13.736 3.42859 15.4008 4.10589 16.6283 5.31149C17.8558 6.51709 18.5455 8.15224 18.5455 9.85722C18.5455 14.9671 13.5027 19.2323 12 20.393Z" fill="white"/></svg>
+<div>
+<p>г. Москва, Хлебозаводский проезд, 7, стр. 9, 115230 &bull; помещение 42/н</p>
+<p>Пн-Пт: с 09:00 — 18:00</p>
+</div>
+</div>
+<div class="epm-footer__contacts-item">
+<svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M20.8472 14.8554L16.4306 12.8764L16.4184 12.8707C16.1891 12.7727 15.939 12.7333 15.6907 12.7562C15.4424 12.7792 15.2037 12.8636 14.9962 13.002C14.9718 13.0181 14.9483 13.0356 14.9259 13.0545L12.6441 14.9998C11.1984 14.2976 9.70593 12.8164 9.00374 11.3895L10.9519 9.07294C10.9706 9.0495 10.9884 9.02606 11.0053 9.00075C11.1407 8.79384 11.2229 8.55667 11.2444 8.31035C11.266 8.06402 11.2264 7.81618 11.1291 7.58887V7.57762L9.14437 3.15356C9.01569 2.85662 8.79442 2.60926 8.51361 2.44841C8.23279 2.28756 7.90748 2.22184 7.58624 2.26106C6.3159 2.42822 5.14985 3.05209 4.30587 4.01615C3.46189 4.98021 2.9977 6.21852 2.99999 7.49981C2.99999 14.9436 9.05624 20.9998 16.5 20.9998C17.7813 21.0021 19.0196 20.5379 19.9837 19.6939C20.9477 18.85 21.5716 17.6839 21.7387 16.4136C21.778 16.0924 21.7125 15.7672 21.5518 15.4864C21.3911 15.2056 21.1439 14.9843 20.8472 14.8554ZM16.5 19.4998C13.3185 19.4963 10.2682 18.2309 8.01855 15.9813C5.76886 13.7316 4.50347 10.6813 4.49999 7.49981C4.49647 6.58433 4.82629 5.69887 5.42787 5.00879C6.02945 4.3187 6.86165 3.87118 7.76906 3.74981C7.76868 3.75355 7.76868 3.75732 7.76906 3.76106L9.73781 8.16731L7.79999 10.4867C7.78028 10.5093 7.76242 10.5334 7.74656 10.5589C7.60548 10.7754 7.52271 11.0246 7.50629 11.2825C7.48986 11.5404 7.54033 11.7981 7.65281 12.0307C8.50218 13.7679 10.2525 15.5051 12.0084 16.3536C12.2428 16.465 12.502 16.5137 12.7608 16.495C13.0196 16.4762 13.2691 16.3907 13.485 16.2467C13.5091 16.2305 13.5323 16.213 13.5544 16.1942L15.8334 14.2498L20.2397 16.2232H20.25C20.1301 17.1319 19.6833 17.9658 18.993 18.5689C18.3028 19.172 17.4165 19.5029 16.5 19.4998Z" fill="white"/></svg>
+<div>
+<a class="accent" href="tel:+74992262325">&#x3164;</a>
+<a href="tel:88007751296">+7 (933) 993 87 77</a>
+</div>
+</div>
+<div class="epm-footer__contacts-item">
+<svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M21.2308 5H2.76923C2.56522 5 2.36956 5.07902 2.2253 5.21967C2.08104 5.36032 2 5.55109 2 5.75V18.5C2 18.8978 2.16209 19.2794 2.4506 19.5607C2.73912 19.842 3.13044 20 3.53846 20H20.4615C20.8696 20 21.2609 19.842 21.5494 19.5607C21.8379 19.2794 22 18.8978 22 18.5V5.75C22 5.55109 21.919 5.36032 21.7747 5.21967C21.6304 5.07902 21.4348 5 21.2308 5ZM19.2529 6.5L12 12.9828L4.74712 6.5H19.2529ZM20.4615 18.5H3.53846V7.45531L11.4798 14.5531C11.6217 14.6801 11.8074 14.7506 12 14.7506C12.1926 14.7506 12.3783 14.6801 12.5202 14.5531L20.4615 7.45531V18.5Z" fill="white"/></svg>
+<a class="accent" href="mailto:sales@erm-group.ru">sales@erm-group.ru</a>
+</div>
+</div>
+<div class="epm-footer__catalog">
+<a class="epm-footer__subtitle" href="./catalog.html">Каталог</a>
+<ul>
+<li><a href="./catalog/trubnyj-prokat/">Трубный прокат</a></li>
+<li><a href="./catalog/fasonnyj-prokat/">Фасонный прокат</a></li>
+<li><a href="./catalog/setki-metallicheskie/">Сетки металлические</a></li>
+<li><a href="./catalog/sortovoj-prokat/">Сортовой прокат</a></li>
+<li><a href="./catalog/listovoj-prokat/">Листовой прокат</a></li>
+<li><a href="./catalog/kabeli-i-provoda/">Кабели и провода</a></li>
+<li><a href="./catalog/provoloka/">Проволока</a></li>
+<li><a href="./catalog/polimery/">Полимеры</a></li>
+</ul>
+</div>
+<div class="epm-footer__services">
+<a class="epm-footer__subtitle" href="./services.html">Услуги</a>
+<ul>
+<li><a href="./services.html">ППУ изоляция труб</a></li>
+<li><a href="./services.html">Контактная сварка</a></li>
+<li><a href="./services.html">Резка металла гильотинная</a></li>
+<li><a href="./services.html">Резка металла гидроабразивная</a></li>
+<li><a href="./services.html">Термообработка металла</a></li>
+</ul>
+</div>
+<div class="epm-footer__clients">
+<a class="epm-footer__subtitle" href="./delivery.html">Доставка и оплата</a>
+<a class="epm-footer__subtitle" href="./about.html">О компании</a>
+<span class="epm-footer__subtitle">Документация</span>
+<ul>
+<li><a href="./oferta.html">Оферта</a></li>
+<li><a href="./policy.html">Политика конфиденциальности</a></li>
+</ul>
+</div>
+<div class="epm-footer__offer">
+<p>Внимание, размещенная информация не является публичной офертой, подробнее можно ознакомиться <a href="./oferta.html">здесь.</a></p>
+<span>Цены носят информационный характер, наличие товара уточняйте у менеджера</span>
+</div>
+<div class="epm-footer__copyright">
+<span>&copy;ЕРМ, 2026</span>
+</div>
+</div>
+</div>
+</footer>
+
+<div id="epmModal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,25,82,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+<div style="background:#fff;border-radius:16px;padding:40px;max-width:420px;width:100%;position:relative;">
+<button onclick="document.getElementById('epmModal').style.display='none'" style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#999;font-size:20px;line-height:1;">&#10005;</button>
+<h3 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#001952;">Заказать звонок</h3>
+<p style="margin:0 0 20px;font-size:14px;color:#666;">Менеджер свяжется с вами в течение 15 минут</p>
+<form id="epmCallbackForm">
+<div style="display:flex;flex-direction:column;gap:12px;">
+<input name="name" placeholder="Ваше имя" required style="padding:12px 14px;border:1px solid #dde3f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" type="text"/>
+<input name="phone" placeholder="+7 (___) ___-__-__" required style="padding:12px 14px;border:1px solid #dde3f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" type="tel"/>
+<textarea name="comment" placeholder="Комментарий (необязательно)" rows="2" style="padding:12px 14px;border:1px solid #dde3f0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;resize:none;"></textarea>
+<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#666;cursor:pointer;">
+<input required style="margin-top:2px;flex-shrink:0;" type="checkbox"/>
+Я даю согласие на обработку персональных данных
+</label>
+<button id="epmCallbackBtn" style="background:#8B1A1A;color:#fff;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;" type="submit">Отправить</button>
+<div id="epmCallbackMsg" style="display:none;font-size:13px;text-align:center;padding:10px;border-radius:6px;"></div>
+</div>
+</form>
+</div>
+</div>
+
+<script>
+(function(){
+  var form=document.getElementById('epmCallbackForm');
+  if(!form||form._cbInit)return;
+  form._cbInit=true;
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    var btn=document.getElementById('epmCallbackBtn');
+    var msg=document.getElementById('epmCallbackMsg');
+    btn.disabled=true;btn.textContent='Отправляем...';
+    try{
+      var res=await fetch((window.EPM_API||'')+'/api/callback',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({type:'callback',name:form.name.value.trim(),phone:form.phone.value.trim(),comment:form.comment.value.trim()})
+      });
+      msg.style.display='block';
+      if(res.ok){msg.style.background='#f0fdf4';msg.style.color='#166534';msg.textContent='\u2714 Спасибо! Мы перезвоним вам в течение 15 минут.';form.reset();setTimeout(function(){document.getElementById('epmModal').style.display='none';msg.style.display='none';},3000);}
+      else throw new Error();
+    }catch(err){
+      msg.style.display='block';msg.style.background='#fff0f0';msg.style.color='#991b1b';
+      msg.textContent='Ошибка. Позвоните: +7 (933) 993 87 77';
+    }
+    btn.disabled=false;btn.textContent='Отправить';
+  });
+})();
+</script>
+
+<!-- ===== ARTICLES DATA + READER LOGIC ===== -->
+<script>
+(function() {
+  'use strict';
+
+  // ── Данные статей ──
+  var articles = [
+    {
+      title: 'Швеллер и двутавр: в чём разница и как выбрать',
+      badge: 'Продукция',
+      category: 'product',
+      date: 'Март 2026',
+      readTime: '7 мин',
+      body: '<h2>Введение</h2>'
+        + '<p>Швеллер и двутавр — два базовых профиля фасонного проката, без которых невозможно представить строительство каркасных зданий, мостовых конструкций и промышленных сооружений. Несмотря на внешнее сходство (оба представляют собой балки с полками), их геометрия, несущая способность и область применения принципиально различаются.</p>'
+
+        + '<h2>Что такое швеллер</h2>'
+        + '<p>Швеллер — это металлический профиль П-образного сечения. Две параллельные полки соединены стенкой, образуя открытый канал. Основные стандарты производства — ГОСТ 8240-97 (горячекатаный) и ГОСТ 8278-83 (гнутый).</p>'
+        + '<p>Ключевые характеристики швеллера:</p>'
+        + '<ul>'
+        + '<li><strong>Высота профиля:</strong> от 50 до 400 мм (номера 5–40)</li>'
+        + '<li><strong>Ширина полки:</strong> от 32 до 115 мм</li>'
+        + '<li><strong>Толщина стенки:</strong> от 4,4 до 8,0 мм</li>'
+        + '<li><strong>Марки стали:</strong> Ст3сп, Ст3пс, 09Г2С (для повышенной прочности)</li>'
+        + '</ul>'
+        + '<p>Швеллер применяется как направляющий элемент, подкрановая балка, обвязка фундамента, каркас перекрытий и усиление колонн. Его П-образная форма удобна для стыковки с другими элементами — внутри канала прокладывают коммуникации или крепят обшивку.</p>'
+
+        + '<h2>Что такое двутавр</h2>'
+        + '<p>Двутавр (двутавровая балка) — профиль Н-образного сечения. Две полки симметрично расположены по обе стороны вертикальной стенки. Производится по ГОСТ 26020-83 (широкополочный, колонный, нормальный) и ГОСТ 8239-89 (с уклоном внутренних граней полок).</p>'
+        + '<p>Ключевые характеристики двутавра:</p>'
+        + '<ul>'
+        + '<li><strong>Высота профиля:</strong> от 100 до 1000 мм и более</li>'
+        + '<li><strong>Ширина полки:</strong> от 55 до 400 мм</li>'
+        + '<li><strong>Серии:</strong> Б (нормальный), Ш (широкополочный), К (колонный)</li>'
+        + '</ul>'
+        + '<div class="info-box">Двутавр серии К (колонный) имеет почти квадратное соотношение высоты к ширине полки и способен воспринимать нагрузки во всех направлениях.</div>'
+
+        + '<h2>Сравнительная таблица</h2>'
+        + '<table>'
+        + '<tr><th>Параметр</th><th>Швеллер</th><th>Двутавр</th></tr>'
+        + '<tr><td>Сечение</td><td>П-образное</td><td>Н-образное</td></tr>'
+        + '<tr><td>Симметрия</td><td>Одна ось</td><td>Две оси</td></tr>'
+        + '<tr><td>Несущая способность</td><td>Средняя</td><td>Высокая</td></tr>'
+        + '<tr><td>Устойчивость к кручению</td><td>Низкая</td><td>Высокая</td></tr>'
+        + '<tr><td>Типичное применение</td><td>Каркасы, направляющие, обвязка</td><td>Несущие балки, перекрытия, мосты</td></tr>'
+        + '<tr><td>Стоимость за тонну</td><td>Ниже на 10–20%</td><td>Выше</td></tr>'
+        + '</table>'
+
+        + '<h2>Как выбрать</h2>'
+        + '<ol>'
+        + '<li><strong>Определите тип нагрузки.</strong> Если балка работает на изгиб в одной плоскости — подойдёт и швеллер. Если нагрузка сложная (изгиб + кручение) — только двутавр.</li>'
+        + '<li><strong>Рассчитайте момент сопротивления.</strong> Сравните требуемый Wx с табличными значениями из ГОСТ. Для двутавра Wx значительно выше при той же массе погонного метра.</li>'
+        + '<li><strong>Учтите условия монтажа.</strong> Швеллер проще крепить к плоской поверхности (стене, колонне). Двутавр требует специальных узлов, но обеспечивает лучшую устойчивость.</li>'
+        + '<li><strong>Оцените бюджет.</strong> При равной несущей способности двутавр экономит материал (меньше масса), но сам профиль дороже за тонну.</li>'
+        + '</ol>'
+
+        + '<h2>Итог</h2>'
+        + '<p>Швеллер — универсальный и доступный профиль для вспомогательных конструкций, каркасов и обвязки. Двутавр — основная несущая балка для серьёзных нагрузок. При проектировании ответственных конструкций рекомендуется расчёт по СП 16.13330.2017 (стальные конструкции) с привлечением инженера-проектировщика.</p>'
+    },
+    {
+      title: 'Как расшифровать марку стали?',
+      badge: 'Марки стали',
+      category: 'steel',
+      date: 'Март 2026',
+      readTime: '8 мин',
+      body: '<h2>Зачем разбираться в маркировке</h2>'
+        + '<p>Марка стали — это её «паспорт». По буквенно-цифровому обозначению можно определить химический состав, назначение и ключевые свойства металла. Неправильно выбранная марка приводит к ускоренной коррозии, хрупкому разрушению или неоправданному удорожанию конструкции.</p>'
+
+        + '<h2>Конструкционные углеродистые стали (ГОСТ 1050)</h2>'
+        + '<p>Маркируются двузначным числом, указывающим среднее содержание углерода в сотых долях процента:</p>'
+        + '<ul>'
+        + '<li><strong>Сталь 10</strong> — 0,10% углерода, мягкая, пластичная. Применяется для крепежа, труб, деталей, не требующих высокой прочности.</li>'
+        + '<li><strong>Сталь 20</strong> — 0,20% С. Самая распространённая для трубного проката и деталей машин.</li>'
+        + '<li><strong>Сталь 45</strong> — 0,45% С. Среднеуглеродистая, применяется для шестерней, валов, осей после термообработки.</li>'
+        + '</ul>'
+        + '<div class="info-box">Чем больше углерода — тем твёрже и прочнее сталь, но ниже пластичность и свариваемость. Стали с содержанием C выше 0,25% сваривают с предварительным подогревом.</div>'
+
+        + '<h2>Стали обыкновенного качества (ГОСТ 380)</h2>'
+        + '<p>Обозначение начинается с «Ст»: Ст0, Ст1, Ст2, Ст3, ... Ст6. Число указывает условный номер марки (не содержание углерода напрямую).</p>'
+        + '<p>После номера идут буквы:</p>'
+        + '<ul>'
+        + '<li><strong>кп</strong> — кипящая (дешёвая, менее однородная)</li>'
+        + '<li><strong>пс</strong> — полуспокойная (компромисс)</li>'
+        + '<li><strong>сп</strong> — спокойная (лучшая однородность, дороже)</li>'
+        + '</ul>'
+        + '<p>Пример: <strong>Ст3сп</strong> — сталь обыкновенного качества, марка 3, спокойная. Самая массовая марка в строительстве: прокат, арматура, трубы, швеллеры, уголки.</p>'
+
+        + '<h2>Легированные стали (ГОСТ 4543)</h2>'
+        + '<p>Легирующие элементы обозначаются буквами русского алфавита:</p>'
+        + '<table>'
+        + '<tr><th>Буква</th><th>Элемент</th><th>Что даёт</th></tr>'
+        + '<tr><td>Г</td><td>Марганец (Mn)</td><td>Прочность, износостойкость</td></tr>'
+        + '<tr><td>С</td><td>Кремний (Si)</td><td>Упругость, жаростойкость</td></tr>'
+        + '<tr><td>Х</td><td>Хром (Cr)</td><td>Твёрдость, коррозионная стойкость</td></tr>'
+        + '<tr><td>Н</td><td>Никель (Ni)</td><td>Вязкость, коррозионная стойкость</td></tr>'
+        + '<tr><td>М</td><td>Молибден (Mo)</td><td>Жаропрочность</td></tr>'
+        + '<tr><td>Т</td><td>Титан (Ti)</td><td>Стабилизация структуры</td></tr>'
+        + '<tr><td>Ф</td><td>Ванадий (V)</td><td>Мелкозернистость, прочность</td></tr>'
+        + '<tr><td>Д</td><td>Медь (Cu)</td><td>Атмосферостойкость</td></tr>'
+        + '</table>'
+        + '<p>Цифра после буквы — среднее содержание элемента в процентах. Если цифры нет — содержание около 1%.</p>'
+        + '<p>Пример: <strong>09Г2С</strong> — 0,09% углерода, ~2% марганца, ~1% кремния. Низколегированная сталь повышенной прочности, хорошо сваривается. Применяется для ответственных металлоконструкций, трубопроводов, мостов.</p>'
+
+        + '<h2>Нержавеющие стали</h2>'
+        + '<p>Маркировка по ГОСТ, например: <strong>12Х18Н10Т</strong> — 0,12% С, 18% хрома, 10% никеля, титан. Самая распространённая пищевая нержавейка.</p>'
+        + '<p>Зарубежный аналог по AISI: 321. Подробнее о нержавейке — в отдельной статье.</p>'
+
+        + '<h2>Практические советы</h2>'
+        + '<ol>'
+        + '<li>Для обычных строительных конструкций достаточно <strong>Ст3сп / Ст3пс</strong>.</li>'
+        + '<li>Для ответственных конструкций (мосты, высотные здания, крановые балки) — <strong>09Г2С</strong>.</li>'
+        + '<li>Для деталей машин с термообработкой — <strong>Сталь 40, Сталь 45, 40Х</strong>.</li>'
+        + '<li>Для агрессивной среды — нержавеющие стали серии Х18Н.</li>'
+        + '</ol>'
+    },
+    {
+      title: 'Что такое металлопрокат?',
+      badge: 'Продукция',
+      category: 'product',
+      date: 'Февраль 2026',
+      readTime: '6 мин',
+      body: '<h2>Определение</h2>'
+        + '<p>Металлопрокат — это металлические изделия, полученные методом прокатки на специальных станах. Раскалённую или холодную заготовку (сляб, блюм, сутунку) пропускают между вращающимися валками, которые придают ей нужную форму сечения: круг, квадрат, швеллер, трубу, лист и т.д.</p>'
+        + '<p>Металлопрокат — основа современного строительства, машиностроения, энергетики и транспортной инфраструктуры. На долю проката приходится более 80% всей выпускаемой стали в мире.</p>'
+
+        + '<h2>Классификация по форме сечения</h2>'
+        + '<h3>Сортовой прокат</h3>'
+        + '<p>Изделия с простым поперечным сечением: круг, квадрат, шестигранник, полоса. Используется как заготовка для деталей машин, арматуры, крепежа.</p>'
+        + '<h3>Фасонный прокат</h3>'
+        + '<p>Профили сложного сечения: швеллер, двутавр, уголок, рельс. Основа строительных металлоконструкций.</p>'
+        + '<h3>Листовой прокат</h3>'
+        + '<p>Плоские изделия: тонколистовой (до 4 мм), толстолистовой (4–160 мм). Применяется для обшивки, изготовления ёмкостей, судостроения.</p>'
+        + '<h3>Трубный прокат</h3>'
+        + '<p>Бесшовные и сварные трубы различного назначения: водогазопроводные, нефтегазовые, конструкционные, профильные (квадратные, прямоугольные).</p>'
+
+        + '<h2>Классификация по технологии производства</h2>'
+        + '<table>'
+        + '<tr><th>Способ</th><th>Температура</th><th>Особенности</th></tr>'
+        + '<tr><td>Горячекатаный</td><td>900–1200 °C</td><td>Основной объём. Окалина на поверхности, допуски шире</td></tr>'
+        + '<tr><td>Холоднокатаный</td><td>Комнатная</td><td>Точные размеры, гладкая поверхность, дороже</td></tr>'
+        + '<tr><td>Калиброванный</td><td>Комнатная</td><td>Прецизионные допуски для деталей машин</td></tr>'
+        + '</table>'
+
+        + '<h2>Основные стандарты</h2>'
+        + '<ul>'
+        + '<li><strong>ГОСТ 2590</strong> — круг стальной горячекатаный</li>'
+        + '<li><strong>ГОСТ 8509</strong> — уголок равнополочный</li>'
+        + '<li><strong>ГОСТ 8240</strong> — швеллер</li>'
+        + '<li><strong>ГОСТ 26020</strong> — двутавр</li>'
+        + '<li><strong>ГОСТ 19903</strong> — лист горячекатаный</li>'
+        + '<li><strong>ГОСТ 10704</strong> — труба электросварная</li>'
+        + '</ul>'
+
+        + '<h2>Как выбрать поставщика</h2>'
+        + '<p>При выборе металлопроката обращайте внимание на:</p>'
+        + '<ol>'
+        + '<li><strong>Сертификаты качества</strong> — каждая партия должна сопровождаться сертификатом с указанием марки стали, плавки и результатов механических испытаний.</li>'
+        + '<li><strong>Условия хранения</strong> — прокат должен храниться на складе, защищённом от влаги, на подкладках (не на земле).</li>'
+        + '<li><strong>Мерность</strong> — стандартная длина 6 или 12 м. Немерный прокат дешевле, но может давать больше отходов при раскрое.</li>'
+        + '<li><strong>Услуги обработки</strong> — резка, гибка, сварка «на месте» экономят транспортные расходы.</li>'
+        + '</ol>'
+    },
+    {
+      title: 'Виды стальных труб: классификация и применение',
+      badge: 'Продукция',
+      category: 'product',
+      date: 'Февраль 2026',
+      readTime: '9 мин',
+      body: '<h2>Введение</h2>'
+        + '<p>Стальные трубы — один из самых востребованных видов металлопроката. Они используются в водоснабжении, отоплении, газоснабжении, нефтепроводах, строительстве и машиностроении. Правильный выбор типа трубы напрямую влияет на срок службы, безопасность и стоимость проекта.</p>'
+
+        + '<h2>По способу производства</h2>'
+        + '<h3>Бесшовные (цельнотянутые)</h3>'
+        + '<p>Изготавливаются из цельной заготовки без сварного шва. Бывают горячедеформированные (ГОСТ 8732) и холоднодеформированные (ГОСТ 8734).</p>'
+        + '<ul>'
+        + '<li>Выдерживают высокое давление (до 200+ атм)</li>'
+        + '<li>Применяются в нефтегазовой отрасли, котлостроении, гидравлических системах</li>'
+        + '<li>Стоимость в 2–4 раза выше сварных</li>'
+        + '</ul>'
+        + '<h3>Электросварные (прямошовные)</h3>'
+        + '<p>Лист сворачивают в трубу и сваривают продольным швом (ГОСТ 10704, ГОСТ 10705). Наиболее массовый тип.</p>'
+        + '<ul>'
+        + '<li>Диаметры от 10 до 1420 мм</li>'
+        + '<li>Подходят для водо- и газоснабжения, конструкций, ограждений</li>'
+        + '<li>Доступная цена</li>'
+        + '</ul>'
+        + '<h3>Спиральношовные</h3>'
+        + '<p>Шов идёт по спирали. Производятся из рулонной стали (ГОСТ 20295). Применяются для магистральных трубопроводов большого диаметра (530–2520 мм).</p>'
+
+        + '<h2>По форме сечения</h2>'
+        + '<table>'
+        + '<tr><th>Тип</th><th>Сечение</th><th>ГОСТ</th><th>Применение</th></tr>'
+        + '<tr><td>Круглая</td><td>⊘</td><td>10704, 8732</td><td>Трубопроводы, гидравлика</td></tr>'
+        + '<tr><td>Квадратная</td><td>◻</td><td>8639</td><td>Каркасы, мебель, ограждения</td></tr>'
+        + '<tr><td>Прямоугольная</td><td>▭</td><td>8645</td><td>Строительные конструкции</td></tr>'
+        + '<tr><td>Овальная</td><td>⬮</td><td>8642</td><td>Мебель, декор, теплообменники</td></tr>'
+        + '</table>'
+
+        + '<h2>По назначению</h2>'
+        + '<ul>'
+        + '<li><strong>Водогазопроводные (ВГП)</strong> — ГОСТ 3262. Оцинкованные или чёрные, для систем водо- и газоснабжения низкого давления.</li>'
+        + '<li><strong>Обсадные</strong> — ГОСТ 632. Для бурения скважин, с резьбовым соединением.</li>'
+        + '<li><strong>Котельные</strong> — ТУ 14-3-460. Для работы при высоких температурах и давлениях.</li>'
+        + '<li><strong>Конструкционные</strong> — ГОСТ 8639/8645. Профильные трубы для каркасов и металлоконструкций.</li>'
+        + '</ul>'
+
+        + '<h2>Покрытия</h2>'
+        + '<p>Для защиты от коррозии применяются:</p>'
+        + '<ul>'
+        + '<li><strong>Оцинкование</strong> (горячее или гальваническое) — слой цинка 30–60 мкм, срок защиты 15–25 лет.</li>'
+        + '<li><strong>ППУ-изоляция</strong> — пенополиуретановая оболочка для теплотрасс, снижает теплопотери в 3–5 раз.</li>'
+        + '<li><strong>ВУС / НУС</strong> — весьма/нормально усиленная антикоррозионная изоляция для подземных трубопроводов.</li>'
+        + '<li><strong>Полимерное покрытие</strong> — полиэтилен, эпоксидная смола.</li>'
+        + '</ul>'
+
+        + '<h2>Как рассчитать вес трубы</h2>'
+        + '<p>Формула для круглой трубы: <strong>M = (D &minus; s) &times; s &times; 0,02466</strong>, где D — наружный диаметр (мм), s — толщина стенки (мм), M — масса 1 погонного метра (кг).</p>'
+        + '<div class="info-box">Пример: труба 89&times;4 мм. M = (89 &minus; 4) &times; 4 &times; 0,02466 = 8,38 кг/м. Табличное значение по ГОСТ — 8,39 кг/м.</div>'
+    },
+    {
+      title: 'Нержавеющая сталь: марки, свойства, применение',
+      badge: 'Марки стали',
+      category: 'steel',
+      date: 'Январь 2026',
+      readTime: '8 мин',
+      body: '<h2>Что делает сталь «нержавеющей»</h2>'
+        + '<p>Нержавеющая сталь — это сплав железа с хромом (минимум 10,5%). Хром образует на поверхности тонкую оксидную плёнку (Cr₂O₃), которая защищает металл от коррозии. Плёнка самовосстанавливается при повреждении, что обеспечивает долговечность изделий.</p>'
+
+        + '<h2>Основные группы</h2>'
+        + '<h3>Аустенитные (серия 300 AISI)</h3>'
+        + '<p>Содержат 16–26% хрома и 6–22% никеля. Немагнитные, пластичные, отлично свариваются. Самые распространённые:</p>'
+        + '<table>'
+        + '<tr><th>ГОСТ</th><th>AISI</th><th>Состав</th><th>Применение</th></tr>'
+        + '<tr><td>08Х18Н10</td><td>304</td><td>18% Cr, 10% Ni</td><td>Пищевое оборудование, посуда, архитектура</td></tr>'
+        + '<tr><td>12Х18Н10Т</td><td>321</td><td>18% Cr, 10% Ni, Ti</td><td>Химическая промышленность, трубопроводы</td></tr>'
+        + '<tr><td>10Х17Н13М2</td><td>316</td><td>17% Cr, 13% Ni, 2% Mo</td><td>Морская среда, медицина, фармацевтика</td></tr>'
+        + '</table>'
+
+        + '<h3>Ферритные (серия 400 AISI)</h3>'
+        + '<p>Содержат 11–30% хрома, без никеля или с минимальным содержанием. Магнитные, дешевле аустенитных.</p>'
+        + '<ul>'
+        + '<li><strong>08Х13 (AISI 409)</strong> — автомобильные выхлопные системы</li>'
+        + '<li><strong>12Х17 (AISI 430)</strong> — кухонные мойки, отделочные панели, бытовая техника</li>'
+        + '</ul>'
+
+        + '<h3>Мартенситные</h3>'
+        + '<p>Углерод 0,1–1,2%, хром 11–18%. Закаливаются до высокой твёрдости. Применяются для ножей, режущего инструмента, пружин, подшипников.</p>'
+        + '<ul>'
+        + '<li><strong>20Х13, 30Х13, 40Х13</strong> — клапаны, ножи, хирургические инструменты</li>'
+        + '</ul>'
+
+        + '<h2>Как выбрать марку</h2>'
+        + '<ol>'
+        + '<li><strong>Пищевая промышленность:</strong> AISI 304 (08Х18Н10) — оптимальное сочетание коррозионной стойкости и цены.</li>'
+        + '<li><strong>Агрессивная химическая среда:</strong> AISI 316 (10Х17Н13М2) — молибден повышает стойкость к хлоридам.</li>'
+        + '<li><strong>Высокие температуры (до 800 °C):</strong> AISI 321 (12Х18Н10Т) — титан предотвращает межкристаллитную коррозию.</li>'
+        + '<li><strong>Бюджетные решения (сухие помещения):</strong> AISI 430 (12Х17) — ферритная, без никеля.</li>'
+        + '</ol>'
+
+        + '<h2>Виды изделий из нержавейки</h2>'
+        + '<p>ЕРМ поставляет полный спектр нержавеющего проката:</p>'
+        + '<ul>'
+        + '<li>Листы холоднокатаные и горячекатаные (от 0,5 до 50 мм)</li>'
+        + '<li>Трубы бесшовные и сварные (от 6 до 325 мм)</li>'
+        + '<li>Круг, квадрат, шестигранник (от 5 до 250 мм)</li>'
+        + '<li>Уголок, швеллер, полоса</li>'
+        + '<li>Проволока, сетка</li>'
+        + '</ul>'
+
+        + '<div class="info-box">При заказе нержавеющего проката обязательно уточняйте: марку стали (ГОСТ или AISI), тип поверхности (2B, BA, зеркальная), точные размеры и допуски. Это позволит избежать пересортицы и возвратов.</div>'
+    },
+    {
+      title: 'Листовой прокат: виды, характеристики, подбор',
+      badge: 'Продукция',
+      category: 'product',
+      date: 'Январь 2026',
+      readTime: '7 мин',
+      body: '<h2>Введение</h2>'
+        + '<p>Листовой прокат — плоские стальные изделия, ширина и длина которых многократно превышают толщину. Это второй по объёмам вид проката после сортового. Листы используются в строительстве, машиностроении, судостроении, производстве ёмкостей, автомобилестроении и быту.</p>'
+
+        + '<h2>Классификация по толщине</h2>'
+        + '<table>'
+        + '<tr><th>Группа</th><th>Толщина</th><th>ГОСТ</th><th>Применение</th></tr>'
+        + '<tr><td>Тонколистовой</td><td>0,4–3,9 мм</td><td>19904</td><td>Кровля, профнастил, обшивка, штамповка</td></tr>'
+        + '<tr><td>Толстолистовой</td><td>4–160 мм</td><td>19903</td><td>Судостроение, мосты, резервуары, плиты</td></tr>'
+        + '</table>'
+
+        + '<h2>По способу производства</h2>'
+        + '<h3>Горячекатаный лист (г/к)</h3>'
+        + '<p>Прокатывается при температуре выше 900 °C. Характеристики:</p>'
+        + '<ul>'
+        + '<li>Толщина от 1,2 до 200 мм</li>'
+        + '<li>На поверхности — окалина (тёмный налёт оксидов)</li>'
+        + '<li>Допуски по толщине: ±0,1...±1,3 мм (в зависимости от толщины)</li>'
+        + '<li>Дешевле холоднокатаного</li>'
+        + '</ul>'
+        + '<h3>Холоднокатаный лист (х/к)</h3>'
+        + '<p>Прокатывается при комнатной температуре из горячекатаной заготовки. Характеристики:</p>'
+        + '<ul>'
+        + '<li>Толщина от 0,4 до 5 мм</li>'
+        + '<li>Гладкая, чистая поверхность</li>'
+        + '<li>Точные размеры (допуск до ±0,02 мм)</li>'
+        + '<li>Лучшая штампуемость и внешний вид</li>'
+        + '</ul>'
+
+        + '<h2>Специальные виды</h2>'
+        + '<ul>'
+        + '<li><strong>Оцинкованный лист</strong> — покрытие цинком для защиты от коррозии. Используется для кровли, вентиляции, ограждений. Толщина цинка: 40–275 г/м².</li>'
+        + '<li><strong>Рифлёный лист</strong> — с рельефным рисунком (ромб, чечевица) для антискользящих настилов, ступеней, площадок. ГОСТ 8568.</li>'
+        + '<li><strong>Просечно-вытяжной лист (ПВЛ)</strong> — с ромбовидными отверстиями. Применяется для ступеней, ограждений, фильтров. Лёгкий, пропускает свет и воздух.</li>'
+        + '<li><strong>Перфорированный лист</strong> — с круглыми, квадратными или фигурными отверстиями. Декоративная отделка, вентиляция, сита.</li>'
+        + '</ul>'
+
+        + '<h2>Стандартные размеры</h2>'
+        + '<p>Листы поставляются в стандартных форматах:</p>'
+        + '<ul>'
+        + '<li>1000 &times; 2000 мм</li>'
+        + '<li>1250 &times; 2500 мм</li>'
+        + '<li>1500 &times; 3000 мм (до 6000 мм)</li>'
+        + '<li>2000 &times; 6000 мм (толстый лист)</li>'
+        + '</ul>'
+        + '<p>Также доступна порезка в размер на гильотинных ножницах или плазменным / лазерным раскроем.</p>'
+
+        + '<h2>Как подобрать лист</h2>'
+        + '<ol>'
+        + '<li><strong>Определите назначение:</strong> несущая конструкция, обшивка, или декор? От этого зависят толщина и марка стали.</li>'
+        + '<li><strong>Выберите марку стали:</strong> Ст3 для общих конструкций, 09Г2С для нагруженных, 08Х18Н10 для коррозионной стойкости.</li>'
+        + '<li><strong>Рассчитайте толщину:</strong> для несущих элементов — по расчёту (СП 16.13330), для обшивки — обычно 0,7–2 мм.</li>'
+        + '<li><strong>Учтите покрытие:</strong> если лист эксплуатируется на улице — оцинковка или окраска обязательны.</li>'
+        + '<li><strong>Оптимизируйте раскрой:</strong> выбирайте формат листа, дающий минимум отходов. При серийном производстве — запрашивайте раскрой на предприятии.</li>'
+        + '</ol>'
+        + '<div class="info-box">ЕРМ предлагает услуги гильотинной и гидроабразивной резки металла. Это позволяет получить заготовки нужного размера и сэкономить на транспортировке и утилизации отходов.</div>'
+    }
+  ];
+
+  // ── Индексы видимых карточек (для навигации с учётом фильтра) ──
+  var currentIndex = 0;
+  var visibleArticles = articles.map(function(_, i) { return i; });
+
+  var overlay = document.getElementById('articleReader');
+  var content = document.getElementById('readerContent');
+  var prevBtn = document.getElementById('readerPrev');
+  var nextBtn = document.getElementById('readerNext');
+  var prevLabel = document.getElementById('prevLabel');
+  var nextLabel = document.getElementById('nextLabel');
+  var counter = document.getElementById('readerCounter');
+  var closeBtn = document.getElementById('readerClose');
+
+  // ── Рендер статьи ──
+  function renderArticle(idx) {
+    var a = articles[idx];
+    content.innerHTML =
+      '<span class="reader-badge">' + a.badge + '</span>'
+      + '<h1 class="reader-title">' + a.title + '</h1>'
+      + '<div class="reader-meta">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
+      + '<span>' + a.date + '</span>'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>'
+      + '<span>' + a.readTime + ' чтения</span>'
+      + '</div>'
+      + '<div class="reader-prose">' + a.body + '</div>';
+
+    currentIndex = idx;
+    updateNav();
+    overlay.scrollTop = 0;
+  }
+
+  // ── Обновить навигацию ──
+  function updateNav() {
+    var posInVisible = visibleArticles.indexOf(currentIndex);
+    var total = visibleArticles.length;
+
+    if (posInVisible <= 0) {
+      prevBtn.disabled = true;
+      prevLabel.textContent = '';
+    } else {
+      prevBtn.disabled = false;
+      prevLabel.textContent = articles[visibleArticles[posInVisible - 1]].title;
+    }
+
+    if (posInVisible >= total - 1) {
+      nextBtn.disabled = true;
+      nextLabel.textContent = '';
+    } else {
+      nextBtn.disabled = false;
+      nextLabel.textContent = articles[visibleArticles[posInVisible + 1]].title;
+    }
+
+    counter.textContent = (posInVisible + 1) + ' / ' + total;
+  }
+
+  // ── Открытие ──
+  function openArticle(idx) {
+    renderArticle(idx);
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // ── Закрытие ──
+  function closeReader() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Клик по карточке
+  document.querySelectorAll('.article-card[data-article]').forEach(function(card) {
+    card.addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-article'), 10);
+      openArticle(idx);
+    });
+  });
+
+  // Закрытие
+  closeBtn.addEventListener('click', closeReader);
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) closeReader();
+  });
+
+  // Навигация
+  prevBtn.addEventListener('click', function() {
+    var pos = visibleArticles.indexOf(currentIndex);
+    if (pos > 0) renderArticle(visibleArticles[pos - 1]);
+  });
+  nextBtn.addEventListener('click', function() {
+    var pos = visibleArticles.indexOf(currentIndex);
+    if (pos < visibleArticles.length - 1) renderArticle(visibleArticles[pos + 1]);
+  });
+
+  // Клавиатура
+  document.addEventListener('keydown', function(e) {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'Escape') closeReader();
+    if (e.key === 'ArrowLeft') prevBtn.click();
+    if (e.key === 'ArrowRight') nextBtn.click();
+  });
+
+  // ── Фильтрация ──
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      var filter = this.getAttribute('data-filter');
+      visibleArticles = [];
+      document.querySelectorAll('.article-card[data-article]').forEach(function(card) {
+        var cat = card.getAttribute('data-category');
+        var idx = parseInt(card.getAttribute('data-article'), 10);
+        if (filter === 'all' || cat === filter) {
+          card.style.display = '';
+          visibleArticles.push(idx);
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Свайп на мобильных
+  var touchStartX = 0;
+  overlay.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  overlay.addEventListener('touchend', function(e) {
+    var diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 60) {
+      if (diff > 0) prevBtn.click();
+      else nextBtn.click();
+    }
+  }, { passive: true });
+
+})();
+</script>
+</body>
+</html>

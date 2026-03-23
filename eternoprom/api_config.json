@@ -1,0 +1,8 @@
+{
+  "admin_user": "admin",
+  "admin_password": "admin123",
+  "email_to": "oxxxymiron2.0@yandex.ru",
+  "smtp_user": "f.ilyaspb@yandex.ru",
+  "smtp_pass": "ufkusynqssaxqbez",
+  "notify": "all"
+}
