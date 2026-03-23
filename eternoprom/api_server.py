@@ -38,9 +38,10 @@ from html import unescape
 import secrets
 
 try:
-    from fastapi import FastAPI, HTTPException, Depends, status
+    from fastapi import FastAPI, HTTPException, Depends, status, File, UploadFile
     from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel
     import uvicorn
 except ImportError:
@@ -59,7 +60,9 @@ DEFAULT_CONFIG = {
     "email_to": "sales@erm-group.ru",
     "smtp_user": "",
     "smtp_pass": "",
-    "notify": "all"
+    "notify": "all",
+    "maintenance_mode": False,
+    "maintenance_message": "Сайт временно закрыт на обновление. Скоро вернёмся."
 }
 
 def load_config():
@@ -76,6 +79,7 @@ CONFIG = load_config()
 
 
 CATALOG_ROOT = Path(__file__).parent / "catalog"
+UPLOAD_ROOT = Path(__file__).parent / "uploads"
 
 def slugify(value: str) -> str:
     value = (value or "").strip().lower()
@@ -249,6 +253,14 @@ def init_db():
             created_at TEXT DEFAULT (datetime('now'))
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS admin_snapshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            label TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
     seed_catalog_data(conn)
     seed_service_data(conn)
     conn.commit()
@@ -378,6 +390,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_ROOT), name="uploads")
 
 security = HTTPBearer(auto_error=False)
 
@@ -385,6 +399,80 @@ def get_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(secu
     if not credentials or not verify_token(credentials.credentials):
         raise HTTPException(status_code=401, detail="Unauthorized")
     return credentials.credentials
+
+def serialize_admin_state(conn) -> dict:
+    cfg = load_config()
+    return {
+        "catalog_entities": [dict(r) for r in conn.execute("SELECT * FROM catalog_entities ORDER BY id").fetchall()],
+        "service_groups": [dict(r) for r in conn.execute("SELECT * FROM service_groups ORDER BY id").fetchall()],
+        "service_items": [dict(r) for r in conn.execute("SELECT * FROM service_items ORDER BY id").fetchall()],
+        "maintenance_mode": bool(cfg.get("maintenance_mode")),
+        "maintenance_message": cfg.get("maintenance_message", DEFAULT_CONFIG["maintenance_message"])
+    }
+
+def create_snapshot(conn, label: str) -> dict:
+    payload = json.dumps(serialize_admin_state(conn), ensure_ascii=False)
+    cur = conn.execute("INSERT INTO admin_snapshots (label, payload) VALUES (?, ?)", (label, payload))
+    conn.commit()
+    return dict(conn.execute("SELECT id, label, created_at FROM admin_snapshots WHERE id=?", (cur.lastrowid,)).fetchone())
+
+def update_descendant_urls(conn, entity_id: int):
+    entity = conn.execute("SELECT * FROM catalog_entities WHERE id=?", (entity_id,)).fetchone()
+    if not entity:
+        return
+    entity = dict(entity)
+    children = [dict(r) for r in conn.execute("SELECT * FROM catalog_entities WHERE parent_id=? ORDER BY id", (entity_id,)).fetchall()]
+    for child in children:
+        if child["entity_type"] == "subcategory":
+            new_url = f"/catalog/{entity['slug']}/{child['slug']}/"
+        elif child["entity_type"] == "product":
+            parent = conn.execute("SELECT * FROM catalog_entities WHERE id=?", (child["parent_id"],)).fetchone()
+            if not parent:
+                continue
+            cat = conn.execute("SELECT * FROM catalog_entities WHERE id=?", (parent["parent_id"],)).fetchone()
+            if not cat:
+                continue
+            new_url = f"/catalog/{cat['slug']}/{parent['slug']}/{child['slug']}/"
+        else:
+            new_url = child["url"]
+        conn.execute("UPDATE catalog_entities SET url=? WHERE id=?", (new_url, child["id"]))
+        update_descendant_urls(conn, child["id"])
+
+def restore_snapshot(conn, snapshot_id: int) -> dict:
+    row = conn.execute("SELECT * FROM admin_snapshots WHERE id=?", (snapshot_id,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    payload = json.loads(row["payload"])
+    conn.execute("DELETE FROM catalog_entities")
+    conn.execute("DELETE FROM service_items")
+    conn.execute("DELETE FROM service_groups")
+    for item in payload.get("catalog_entities", []):
+        conn.execute(
+            """INSERT INTO catalog_entities
+            (id, entity_type, parent_id, name, slug, url, image, description, sort_order, is_active, is_seeded, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (item["id"], item["entity_type"], item["parent_id"], item["name"], item["slug"], item["url"], item.get("image", ""), item.get("description", ""), item.get("sort_order", 0), item.get("is_active", 1), item.get("is_seeded", 0), item.get("created_at"))
+        )
+    for group in payload.get("service_groups", []):
+        conn.execute(
+            """INSERT INTO service_groups
+            (id, title, slug, description, sort_order, is_active, is_seeded, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (group["id"], group["title"], group["slug"], group.get("description", ""), group.get("sort_order", 0), group.get("is_active", 1), group.get("is_seeded", 0), group.get("created_at"))
+        )
+    for item in payload.get("service_items", []):
+        conn.execute(
+            """INSERT INTO service_items
+            (id, group_id, title, sort_order, is_active, is_seeded, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (item["id"], item["group_id"], item["title"], item.get("sort_order", 0), item.get("is_active", 1), item.get("is_seeded", 0), item.get("created_at"))
+        )
+    cfg = load_config()
+    cfg["maintenance_mode"] = bool(payload.get("maintenance_mode"))
+    cfg["maintenance_message"] = payload.get("maintenance_message") or DEFAULT_CONFIG["maintenance_message"]
+    save_config(cfg)
+    conn.commit()
+    return {"id": row["id"], "label": row["label"], "created_at": row["created_at"]}
 
 # ─── Models ───────────────────────────────────────────────────────────────────
 
@@ -447,6 +535,13 @@ class CatalogEntityRequest(BaseModel):
     sort_order: int = 0
     is_active: bool = True
 
+class SiteLockRequest(BaseModel):
+    maintenance_mode: bool
+    maintenance_message: Optional[str] = None
+
+class SnapshotRequest(BaseModel):
+    label: Optional[str] = None
+
 class ServiceGroupRequest(BaseModel):
     title: str
     slug: Optional[str] = None
@@ -468,6 +563,14 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+@app.get("/api/site-state")
+def site_state():
+    cfg = load_config()
+    return {
+        "maintenance_mode": bool(cfg.get("maintenance_mode")),
+        "maintenance_message": cfg.get("maintenance_message", DEFAULT_CONFIG["maintenance_message"])
+    }
 
 @app.post("/api/auth")
 def auth(req: AuthRequest):
@@ -600,6 +703,52 @@ def get_admin_catalog(token=Depends(get_token)):
     conn.close()
     return payload
 
+@app.get("/api/admin/site-lock")
+def get_admin_site_lock(token=Depends(get_token)):
+    return site_state()
+
+@app.post("/api/admin/site-lock")
+def update_site_lock(req: SiteLockRequest, token=Depends(get_token)):
+    cfg = load_config()
+    cfg["maintenance_mode"] = bool(req.maintenance_mode)
+    cfg["maintenance_message"] = (req.maintenance_message or DEFAULT_CONFIG["maintenance_message"]).strip()
+    save_config(cfg)
+    return {"status": "saved", "maintenance_mode": cfg["maintenance_mode"], "maintenance_message": cfg["maintenance_message"]}
+
+@app.get("/api/admin/snapshots")
+def get_snapshots(token=Depends(get_token)):
+    conn = get_db()
+    rows = [dict(r) for r in conn.execute("SELECT id, label, created_at FROM admin_snapshots ORDER BY id DESC LIMIT 30").fetchall()]
+    conn.close()
+    return rows
+
+@app.post("/api/admin/snapshots")
+def create_manual_snapshot(req: SnapshotRequest, token=Depends(get_token)):
+    conn = get_db()
+    row = create_snapshot(conn, (req.label or "Ручная точка сохранения").strip())
+    conn.close()
+    return row
+
+@app.post("/api/admin/snapshots/{snapshot_id}/restore")
+def restore_admin_snapshot(snapshot_id: int, token=Depends(get_token)):
+    conn = get_db()
+    restored = restore_snapshot(conn, snapshot_id)
+    conn.close()
+    return {"status": "restored", "snapshot": restored}
+
+@app.post("/api/admin/upload-image")
+async def upload_catalog_image(file: UploadFile = File(...), token=Depends(get_token)):
+    suffix = Path(file.filename or "image.bin").suffix.lower() or ".bin"
+    if suffix not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+        raise HTTPException(status_code=400, detail="Unsupported file type")
+    folder = UPLOAD_ROOT / "catalog"
+    folder.mkdir(parents=True, exist_ok=True)
+    filename = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{secrets.token_hex(6)}{suffix}"
+    target = folder / filename
+    content = await file.read()
+    target.write_bytes(content)
+    return {"url": f"/uploads/catalog/{filename}", "name": file.filename}
+
 @app.post("/api/admin/catalog/entities")
 def create_catalog_entity(req: CatalogEntityRequest, token=Depends(get_token)):
     entity_type = req.entity_type.strip()
@@ -607,6 +756,7 @@ def create_catalog_entity(req: CatalogEntityRequest, token=Depends(get_token)):
         raise HTTPException(status_code=400, detail="Invalid entity type")
     parent_id = req.parent_id
     conn = get_db()
+    create_snapshot(conn, f"Перед добавлением: {req.name.strip()}")
     if entity_type == 'subcategory':
         parent = conn.execute("SELECT entity_type FROM catalog_entities WHERE id=?", (parent_id,)).fetchone()
         if not parent or parent['entity_type'] != 'category':
@@ -639,6 +789,7 @@ def update_catalog_entity(entity_id: int, req: CatalogEntityRequest, token=Depen
     if not current:
         raise HTTPException(status_code=404, detail="Not found")
     current = dict(current)
+    create_snapshot(conn, f"Перед изменением: {current['name']}")
     name = req.name.strip()
     slug = slugify(req.slug or name)
     parent_id = req.parent_id
@@ -659,6 +810,7 @@ def update_catalog_entity(entity_id: int, req: CatalogEntityRequest, token=Depen
         cat = conn.execute("SELECT slug FROM catalog_entities WHERE id=?", (parent['parent_id'],)).fetchone()
         url = req.url or f"/catalog/{cat['slug']}/{parent['slug']}/{slug}/"
     conn.execute("UPDATE catalog_entities SET parent_id=?, name=?, slug=?, url=?, image=?, description=?, sort_order=?, is_active=? WHERE id=?", (parent_id, name, slug, url, req.image or '', req.description or '', req.sort_order, 1 if req.is_active else 0, entity_id))
+    update_descendant_urls(conn, entity_id)
     conn.commit()
     row = dict(conn.execute("SELECT * FROM catalog_entities WHERE id=?", (entity_id,)).fetchone())
     conn.close()
@@ -667,6 +819,8 @@ def update_catalog_entity(entity_id: int, req: CatalogEntityRequest, token=Depen
 @app.delete("/api/admin/catalog/entities/{entity_id}")
 def delete_catalog_entity(entity_id: int, token=Depends(get_token)):
     conn = get_db()
+    current = conn.execute("SELECT name FROM catalog_entities WHERE id=?", (entity_id,)).fetchone()
+    create_snapshot(conn, f"Перед удалением: {current['name'] if current else entity_id}")
     ids = [entity_id]
     idx = 0
     while idx < len(ids):
@@ -681,6 +835,7 @@ def delete_catalog_entity(entity_id: int, token=Depends(get_token)):
 @app.post("/api/admin/services/groups")
 def create_service_group(req: ServiceGroupRequest, token=Depends(get_token)):
     conn = get_db()
+    create_snapshot(conn, f"Перед добавлением группы услуг: {req.title.strip()}")
     slug = slugify(req.slug or req.title)
     cur = conn.execute("INSERT INTO service_groups (title, slug, description, sort_order, is_active) VALUES (?, ?, ?, ?, ?)", (req.title.strip(), slug, req.description or '', req.sort_order, 1 if req.is_active else 0))
     conn.commit()
@@ -691,6 +846,8 @@ def create_service_group(req: ServiceGroupRequest, token=Depends(get_token)):
 @app.put("/api/admin/services/groups/{group_id}")
 def update_service_group(group_id: int, req: ServiceGroupRequest, token=Depends(get_token)):
     conn = get_db()
+    current = conn.execute("SELECT title FROM service_groups WHERE id=?", (group_id,)).fetchone()
+    create_snapshot(conn, f"Перед изменением группы услуг: {current['title'] if current else group_id}")
     conn.execute("UPDATE service_groups SET title=?, slug=?, description=?, sort_order=?, is_active=? WHERE id=?", (req.title.strip(), slugify(req.slug or req.title), req.description or '', req.sort_order, 1 if req.is_active else 0, group_id))
     conn.commit()
     row = dict(conn.execute("SELECT * FROM service_groups WHERE id=?", (group_id,)).fetchone())
@@ -700,6 +857,8 @@ def update_service_group(group_id: int, req: ServiceGroupRequest, token=Depends(
 @app.delete("/api/admin/services/groups/{group_id}")
 def delete_service_group(group_id: int, token=Depends(get_token)):
     conn = get_db()
+    current = conn.execute("SELECT title FROM service_groups WHERE id=?", (group_id,)).fetchone()
+    create_snapshot(conn, f"Перед удалением группы услуг: {current['title'] if current else group_id}")
     conn.execute("DELETE FROM service_items WHERE group_id=?", (group_id,))
     conn.execute("DELETE FROM service_groups WHERE id=?", (group_id,))
     conn.commit()
@@ -709,6 +868,7 @@ def delete_service_group(group_id: int, token=Depends(get_token)):
 @app.post("/api/admin/services/groups/{group_id}/items")
 def create_service_item(group_id: int, req: ServiceItemRequest, token=Depends(get_token)):
     conn = get_db()
+    create_snapshot(conn, f"Перед добавлением услуги: {req.title.strip()}")
     cur = conn.execute("INSERT INTO service_items (group_id, title, sort_order, is_active) VALUES (?, ?, ?, ?)", (group_id, req.title.strip(), req.sort_order, 1 if req.is_active else 0))
     conn.commit()
     row = dict(conn.execute("SELECT * FROM service_items WHERE id=?", (cur.lastrowid,)).fetchone())
@@ -718,6 +878,8 @@ def create_service_item(group_id: int, req: ServiceItemRequest, token=Depends(ge
 @app.put("/api/admin/services/items/{item_id}")
 def update_service_item(item_id: int, req: ServiceItemRequest, token=Depends(get_token)):
     conn = get_db()
+    current = conn.execute("SELECT title FROM service_items WHERE id=?", (item_id,)).fetchone()
+    create_snapshot(conn, f"Перед изменением услуги: {current['title'] if current else item_id}")
     conn.execute("UPDATE service_items SET title=?, sort_order=?, is_active=? WHERE id=?", (req.title.strip(), req.sort_order, 1 if req.is_active else 0, item_id))
     conn.commit()
     row = dict(conn.execute("SELECT * FROM service_items WHERE id=?", (item_id,)).fetchone())
@@ -727,6 +889,8 @@ def update_service_item(item_id: int, req: ServiceItemRequest, token=Depends(get
 @app.delete("/api/admin/services/items/{item_id}")
 def delete_service_item(item_id: int, token=Depends(get_token)):
     conn = get_db()
+    current = conn.execute("SELECT title FROM service_items WHERE id=?", (item_id,)).fetchone()
+    create_snapshot(conn, f"Перед удалением услуги: {current['title'] if current else item_id}")
     conn.execute("DELETE FROM service_items WHERE id=?", (item_id,))
     conn.commit()
     conn.close()
