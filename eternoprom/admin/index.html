@@ -195,6 +195,10 @@ tr:hover td{background:#fafbff;}
 <svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
         Аналитика
       </div>
+<div class="crm-nav-item" onclick="showPage('catalog-admin')">
+<svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><path d="M3 7h18"></path><path d="M6 12h12"></path><path d="M10 17h4"></path></svg>
+        Каталог и услуги
+      </div>
 <div class="crm-nav-item" onclick="showPage('settings')">
 <svg fill="none" height="16" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="16"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>
         Настройки
@@ -301,6 +305,54 @@ tr:hover td{background:#fafbff;}
 <div class="bar-chart" id="chart-hours" style="height:80px;"></div>
 </div>
 </div>
+<!-- CATALOG ADMIN -->
+<div id="page-catalog-admin" style="display:none;">
+<div class="settings-section">
+<h3>Добавить элемент каталога</h3>
+<div class="settings-row">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Тип</label><select class="crm-input" id="catalog-entity-type" onchange="refreshCatalogParentOptions()"><option value="category">Категория</option><option value="subcategory">Подкатегория</option><option value="product">Карточка товара</option></select></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Родитель</label><select class="crm-input" id="catalog-parent"></select></div>
+</div>
+<div class="settings-row">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Название</label><input class="crm-input" id="catalog-name" placeholder="Например: Труба профильная оцинкованная"></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Slug / URL часть</label><input class="crm-input" id="catalog-slug" placeholder="truba-profilnaya-ocinkovannaya"></div>
+</div>
+<div class="settings-row">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Порядок сортировки</label><input class="crm-input" id="catalog-sort" type="number" value="0"></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Ссылка (необязательно)</label><input class="crm-input" id="catalog-url" placeholder="/catalog/.../"></div>
+</div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Описание</label><textarea class="crm-input" id="catalog-description" rows="3" placeholder="Краткое описание карточки или раздела"></textarea></div>
+<div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
+<button class="crm-btn crm-btn-primary" onclick="createCatalogEntity()">Добавить в каталог</button>
+<div id="catalog-admin-msg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;"></div>
+</div>
+</div>
+<div class="settings-section">
+<h3>Добавить услугу</h3>
+<div class="settings-row">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Группа услуг</label><select class="crm-input" id="service-group-select"></select></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Новая группа</label><input class="crm-input" id="service-group-name" placeholder="Например: Металлообработка деталей"></div>
+</div>
+<div class="settings-row">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Новая услуга</label><input class="crm-input" id="service-item-name" placeholder="Например: Лазерная маркировка металла"></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Порядок сортировки</label><input class="crm-input" id="service-sort" type="number" value="0"></div>
+</div>
+<div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
+<button class="crm-btn crm-btn-primary" onclick="createServiceGroup()">Создать группу</button>
+<button class="crm-btn crm-btn-ghost" onclick="createServiceItem()">Добавить услугу</button>
+<div id="service-admin-msg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;"></div>
+</div>
+</div>
+<div class="settings-section">
+<h3>Текущее дерево каталога</h3>
+<div id="catalog-admin-tree" style="display:flex;flex-direction:column;gap:14px;"></div>
+</div>
+<div class="settings-section">
+<h3>Текущие услуги</h3>
+<div id="service-admin-tree" style="display:flex;flex-direction:column;gap:14px;"></div>
+</div>
+</div>
+
 <!-- SETTINGS -->
 <div id="page-settings" style="display:none;">
 <div class="settings-section">
@@ -433,8 +485,8 @@ function doLogout() {
 }
 
 // ─── Pages ──────────────────────────────────────────────────────────────────
-const PAGES = ['dashboard','orders','leads','callbacks','analytics','settings'];
-const PAGE_TITLES = {dashboard:'Дашборд',orders:'Заказы',leads:'Заявки на цену',callbacks:'Обратные звонки',analytics:'Аналитика',settings:'Настройки'};
+const PAGES = ['dashboard','orders','leads','callbacks','analytics','catalog-admin','settings'];
+const PAGE_TITLES = {dashboard:'Дашборд',orders:'Заказы',leads:'Заявки на цену',callbacks:'Обратные звонки',analytics:'Аналитика','catalog-admin':'Каталог и услуги',settings:'Настройки'};
 
 function showPage(name) {
   PAGES.forEach(p => {
@@ -442,7 +494,7 @@ function showPage(name) {
   });
   document.getElementById('crm-page-title').textContent = PAGE_TITLES[name] || name;
   document.querySelectorAll('.crm-nav-item').forEach((el, i) => {
-    const pageName = ['dashboard','orders','leads','callbacks','analytics','settings'][i];
+    const pageName = ['dashboard','orders','leads','callbacks','analytics','catalog-admin','settings'][i];
     el.classList.toggle('active', pageName === name);
   });
   if (name === 'analytics') renderAnalytics();
@@ -453,6 +505,7 @@ async function loadAllData() {
   if (TOKEN === 'demo-token') {
     // Demo-режим без сервера — показываем демо-данные
     ALL_DATA = getDemoData();
+    await loadCatalogAdminData();
     renderAll();
     return;
   }
@@ -776,6 +829,141 @@ function exportCSV(type) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = type + '_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
+}
+
+// ─── Catalog admin ─────────────────────────────────────────────────────────────
+let CATALOG_DATA = {categories:[], service_groups:[]};
+
+function showInlineMsg(id, text, ok=true){
+  const el=document.getElementById(id); if(!el) return;
+  el.style.display='block'; el.style.background=ok?'#f0fdf4':'#fff0f0'; el.style.color=ok?'#166534':'#991b1b'; el.textContent=text;
+}
+
+async function loadCatalogAdminData() {
+  if (TOKEN === 'demo-token') { CATALOG_DATA = {categories:[], service_groups:[]}; renderCatalogAdmin(); return; }
+  try {
+    const res = await fetch(API + '/api/admin/catalog', { headers: {'Authorization':'Bearer '+TOKEN} });
+    if (!res.ok) throw new Error();
+    CATALOG_DATA = await res.json();
+  } catch (e) { CATALOG_DATA = {categories:[], service_groups:[]}; }
+  renderCatalogAdmin();
+}
+
+function refreshCatalogParentOptions() {
+  const type=document.getElementById('catalog-entity-type').value;
+  const select=document.getElementById('catalog-parent');
+  if (!select) return;
+  if (type === 'category') { select.innerHTML='<option value="">Не требуется</option>'; return; }
+  let options=[];
+  if (type === 'subcategory') {
+    options = CATALOG_DATA.categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`);
+  } else {
+    CATALOG_DATA.categories.forEach(cat => (cat.subcategories||[]).forEach(sub => { options.push(`<option value="${sub.id}">${cat.name} → ${sub.name}</option>`); }));
+  }
+  select.innerHTML=options.join('') || '<option value="">Нет доступных родителей</option>';
+}
+
+function refreshServiceGroupOptions(){
+  const select=document.getElementById('service-group-select'); if(!select) return;
+  select.innerHTML = (CATALOG_DATA.service_groups||[]).map(g => `<option value="${g.id}">${g.title}</option>`).join('') || '<option value="">Нет групп</option>';
+}
+
+function renderCatalogAdmin() {
+  refreshCatalogParentOptions(); refreshServiceGroupOptions();
+  const tree=document.getElementById('catalog-admin-tree');
+  if (tree) tree.innerHTML = (CATALOG_DATA.categories||[]).map(cat => `
+    <div style="border:1px solid #e8ecf4;border-radius:12px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+        <div><div style="font-weight:700;color:#001952;">${cat.name}</div><div style="font-size:12px;color:#8a96ae;">${cat.url}</div></div>
+        <button class="crm-btn crm-btn-ghost" onclick="deleteCatalogEntity(${cat.id})">Удалить</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;padding-left:12px;border-left:2px solid #f0f3f9;">
+        ${(cat.subcategories||[]).map(sub => `
+          <div>
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+              <div><div style="font-weight:600;">${sub.name}</div><div style="font-size:12px;color:#8a96ae;">${sub.url}</div></div>
+              <button class="crm-btn crm-btn-ghost" onclick="deleteCatalogEntity(${sub.id})">Удалить</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${(sub.products||[]).map(prod => `<span style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:#f9fafc;border:1px solid #e8ecf4;border-radius:999px;font-size:12px;">${prod.name}<button onclick="deleteCatalogEntity(${prod.id})" style="background:none;border:none;color:#8B1A1A;cursor:pointer;">✕</button></span>`).join('') || '<span style="font-size:12px;color:#8a96ae;">Пока нет новых карточек</span>'}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('') || '<div style="color:#8a96ae;">Данные каталога недоступны.</div>';
+
+  const services=document.getElementById('service-admin-tree');
+  if (services) services.innerHTML = (CATALOG_DATA.service_groups||[]).map(group => `
+    <div style="border:1px solid #e8ecf4;border-radius:12px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+        <div><div style="font-weight:700;color:#001952;">${group.title}</div><div style="font-size:12px;color:#8a96ae;">#${group.slug}</div></div>
+        <button class="crm-btn crm-btn-ghost" onclick="deleteServiceGroup(${group.id})">Удалить группу</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${(group.items||[]).map(item => `<span style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:#f9fafc;border:1px solid #e8ecf4;border-radius:999px;font-size:12px;">${item.title}<button onclick="deleteServiceItem(${item.id})" style="background:none;border:none;color:#8B1A1A;cursor:pointer;">✕</button></span>`).join('') || '<span style="font-size:12px;color:#8a96ae;">В группе пока нет услуг</span>'}</div>
+    </div>`).join('') || '<div style="color:#8a96ae;">Группы услуг пока не загружены.</div>';
+}
+
+async function createCatalogEntity(){
+  try {
+    const payload = {
+      entity_type: document.getElementById('catalog-entity-type').value,
+      parent_id: document.getElementById('catalog-parent').value ? Number(document.getElementById('catalog-parent').value) : null,
+      name: document.getElementById('catalog-name').value.trim(),
+      slug: document.getElementById('catalog-slug').value.trim(),
+      sort_order: Number(document.getElementById('catalog-sort').value || 0),
+      url: document.getElementById('catalog-url').value.trim(),
+      description: document.getElementById('catalog-description').value.trim(),
+      is_active: true
+    };
+    if (!payload.name) return showInlineMsg('catalog-admin-msg','Укажите название', false);
+    const res = await fetch(API + '/api/admin/catalog/entities', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify(payload) });
+    if (!res.ok) throw new Error();
+    showInlineMsg('catalog-admin-msg','Элемент каталога добавлен');
+    ['catalog-name','catalog-slug','catalog-url','catalog-description'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('catalog-sort').value='0';
+    await loadCatalogAdminData();
+  } catch (e) { showInlineMsg('catalog-admin-msg','Не удалось сохранить элемент каталога', false); }
+}
+
+async function deleteCatalogEntity(id){
+  if (!confirm('Удалить элемент и все вложенные элементы?')) return;
+  try {
+    const res = await fetch(API + '/api/admin/catalog/entities/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} });
+    if (!res.ok) throw new Error();
+    await loadCatalogAdminData();
+  } catch (e) { showInlineMsg('catalog-admin-msg','Не удалось удалить элемент каталога', false); }
+}
+
+async function createServiceGroup(){
+  const title=document.getElementById('service-group-name').value.trim();
+  if (!title) return showInlineMsg('service-admin-msg','Введите название группы', false);
+  try {
+    const res = await fetch(API + '/api/admin/services/groups', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify({ title, sort_order:Number(document.getElementById('service-sort').value||0), is_active:true }) });
+    if (!res.ok) throw new Error();
+    document.getElementById('service-group-name').value='';
+    showInlineMsg('service-admin-msg','Группа услуг добавлена');
+    await loadCatalogAdminData();
+  } catch (e) { showInlineMsg('service-admin-msg','Не удалось создать группу услуг', false); }
+}
+
+async function createServiceItem(){
+  const groupId=document.getElementById('service-group-select').value;
+  const title=document.getElementById('service-item-name').value.trim();
+  if (!groupId) return showInlineMsg('service-admin-msg','Сначала создайте группу услуг', false);
+  if (!title) return showInlineMsg('service-admin-msg','Введите название услуги', false);
+  try {
+    const res = await fetch(API + '/api/admin/services/groups/' + groupId + '/items', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify({ title, sort_order:Number(document.getElementById('service-sort').value||0), is_active:true }) });
+    if (!res.ok) throw new Error();
+    document.getElementById('service-item-name').value='';
+    showInlineMsg('service-admin-msg','Услуга добавлена');
+    await loadCatalogAdminData();
+  } catch (e) { showInlineMsg('service-admin-msg','Не удалось добавить услугу', false); }
+}
+
+async function deleteServiceGroup(id){
+  if (!confirm('Удалить группу услуг и все её пункты?')) return;
+  try { const res = await fetch(API + '/api/admin/services/groups/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} }); if(!res.ok) throw new Error(); await loadCatalogAdminData(); } catch(e){ showInlineMsg('service-admin-msg','Не удалось удалить группу', false); }
+}
+
+async function deleteServiceItem(id){
+  try { const res = await fetch(API + '/api/admin/services/items/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} }); if(!res.ok) throw new Error(); await loadCatalogAdminData(); } catch(e){ showInlineMsg('service-admin-msg','Не удалось удалить услугу', false); }
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────

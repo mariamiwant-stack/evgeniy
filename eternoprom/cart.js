@@ -8,6 +8,19 @@
 
   const API_BASE = window.EPM_API || 'http://localhost:8000';
 
+  function loadCatalogAdminEnhancements() {
+    var path = (location.pathname || '').replace(/\/index\.html$/, '/');
+    var isCatalogLike = /\/services\/?$/.test(path) || /\/catalog(\/|\.html|$)/.test(path);
+    if (!isCatalogLike || document.querySelector('script[data-epm-catalog-admin]')) return;
+    var script = document.createElement('script');
+    script.defer = true;
+    script.src = '/eternoprom/catalog-admin.js';
+    script.setAttribute('data-epm-catalog-admin', '1');
+    document.head.appendChild(script);
+  }
+
+  loadCatalogAdminEnhancements();
+
   // ─── Модель (in-memory) ──────────────────────────────────────────────────────
   // ─── Модель (localStorage) ──────────────────────────────────────────────────
 
