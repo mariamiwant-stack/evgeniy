@@ -33,6 +33,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
 from typing import Optional, List
+import re
+from html import unescape
 import secrets
 
 try:
@@ -72,6 +74,115 @@ def save_config(cfg):
 
 CONFIG = load_config()
 
+
+CATALOG_ROOT = Path(__file__).parent / "catalog"
+
+def slugify(value: str) -> str:
+    value = (value or "").strip().lower()
+    value = re.sub(r"[^a-z0-9а-яё]+", "-", value, flags=re.IGNORECASE)
+    return value.strip("-") or "item"
+
+def extract_html_title(path: Path) -> str:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return path.parent.name.replace("-", " ").title()
+    for pattern in [r"<h1[^>]*>(.*?)</h1>", r"<title>(.*?)</title>"]:
+        m = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
+        if m:
+            raw = re.sub(r"<[^>]+>", "", m.group(1))
+            raw = unescape(raw).replace("| Единый ресурс металла", "").replace("— ЕРМ", "").strip()
+            raw = re.sub(r"\s+в Москве$", "", raw).strip()
+            if raw:
+                return raw
+    return path.parent.name.replace("-", " ").title()
+
+def extract_service_sections() -> list[dict]:
+    services_path = Path(__file__).parent / "services.html"
+    if not services_path.exists():
+        return []
+    text = services_path.read_text(encoding="utf-8")
+    sections = []
+    for sec in re.finditer(r'<div class="services-cat-section" id="([^"]+)">(.+?)</div>\s*</div>', text, re.S):
+        slug, body = sec.group(1), sec.group(2)
+        title_match = re.search(r'<h2 class="services-cat-title">(.*?)</h2>', body, re.S)
+        title = unescape(re.sub(r'<[^>]+>', '', title_match.group(1))).strip() if title_match else slug
+        items = [unescape(re.sub(r'<[^>]+>', '', m)).strip() for m in re.findall(r'<a class="service-list-item"[^>]*>(.*?)</a>', body, re.S)]
+        items = [re.sub(r'^\s*', '', re.sub(r'\s+', ' ', i)).strip() for i in items]
+        sections.append({"slug": slug, "title": title, "items": [i for i in items if i]})
+    return sections
+
+def seed_catalog_data(conn):
+    if conn.execute("SELECT COUNT(*) FROM catalog_entities").fetchone()[0] > 0:
+        return
+    if not CATALOG_ROOT.exists():
+        return
+    category_dirs = sorted([p for p in CATALOG_ROOT.iterdir() if p.is_dir()])
+    position = 0
+    for category_dir in category_dirs:
+        category_index = category_dir / 'index.html'
+        category_name = extract_html_title(category_index) if category_index.exists() else category_dir.name
+        category_url = f"/catalog/{category_dir.name}/"
+        cur = conn.execute("INSERT INTO catalog_entities (entity_type, parent_id, name, slug, url, description, sort_order, is_seeded) VALUES ('category', NULL, ?, ?, ?, ?, ?, 1)", (category_name, category_dir.name, category_url, '', position))
+        category_id = cur.lastrowid
+        position += 1
+        sub_position = 0
+        for sub_dir in sorted([p for p in category_dir.iterdir() if p.is_dir()]):
+            sub_index = sub_dir / 'index.html'
+            if not sub_index.exists():
+                continue
+            sub_name = extract_html_title(sub_index)
+            sub_url = f"/catalog/{category_dir.name}/{sub_dir.name}/"
+            sub_cur = conn.execute("INSERT INTO catalog_entities (entity_type, parent_id, name, slug, url, description, sort_order, is_seeded) VALUES ('subcategory', ?, ?, ?, ?, ?, ?, 1)", (category_id, sub_name, sub_dir.name, sub_url, '', sub_position))
+            sub_id = sub_cur.lastrowid
+            sub_position += 1
+            prod_position = 0
+            for product_dir in sorted([p for p in sub_dir.iterdir() if p.is_dir()]):
+                product_index = product_dir / 'index.html'
+                if not product_index.exists():
+                    continue
+                product_name = extract_html_title(product_index)
+                product_url = f"/catalog/{category_dir.name}/{sub_dir.name}/{product_dir.name}/"
+                conn.execute("INSERT INTO catalog_entities (entity_type, parent_id, name, slug, url, description, sort_order, is_seeded) VALUES ('product', ?, ?, ?, ?, ?, ?, 1)", (sub_id, product_name, product_dir.name, product_url, '', prod_position))
+                prod_position += 1
+
+def seed_service_data(conn):
+    if conn.execute("SELECT COUNT(*) FROM service_groups").fetchone()[0] > 0:
+        return
+    for idx, section in enumerate(extract_service_sections()):
+        cur = conn.execute("INSERT INTO service_groups (title, slug, sort_order, is_seeded) VALUES (?, ?, ?, 1)", (section['title'], section['slug'], idx))
+        group_id = cur.lastrowid
+        for item_idx, item in enumerate(section['items']):
+            conn.execute("INSERT INTO service_items (group_id, title, sort_order, is_seeded) VALUES (?, ?, ?, 1)", (group_id, item, item_idx))
+
+def build_catalog_payload(conn):
+    rows = conn.execute("SELECT * FROM catalog_entities WHERE is_active=1 ORDER BY entity_type, sort_order, id").fetchall()
+    entities = [dict(r) for r in rows]
+    by_parent = {}
+    for entity in entities:
+        by_parent.setdefault(entity['parent_id'], []).append(entity)
+    for items in by_parent.values():
+        items.sort(key=lambda e: (e.get('sort_order') or 0, e['name'].lower()))
+    categories = []
+    for cat in by_parent.get(None, []):
+        if cat['entity_type'] != 'category':
+            continue
+        subcategories = []
+        for sub in by_parent.get(cat['id'], []):
+            if sub['entity_type'] != 'subcategory':
+                continue
+            products = [p for p in by_parent.get(sub['id'], []) if p['entity_type'] == 'product']
+            subcategories.append({**sub, 'products': products, 'product_count': len(products)})
+        categories.append({**cat, 'subcategories': subcategories, 'subcategory_count': len(subcategories)})
+    groups = []
+    for group in conn.execute("SELECT * FROM service_groups WHERE is_active=1 ORDER BY sort_order, id").fetchall():
+        g = dict(group)
+        items = [dict(r) for r in conn.execute("SELECT * FROM service_items WHERE group_id=? AND is_active=1 ORDER BY sort_order, id", (g['id'],)).fetchall()]
+        g['items'] = items
+        groups.append(g)
+    return {"categories": categories, "service_groups": groups}
+
+
 # ─── Database ─────────────────────────────────────────────────────────────────
 
 def get_db():
@@ -99,6 +210,47 @@ def init_db():
             created_at TEXT DEFAULT (datetime('now'))
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS catalog_entities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_type TEXT NOT NULL,
+            parent_id INTEGER,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL,
+            url TEXT NOT NULL,
+            image TEXT DEFAULT '',
+            description TEXT DEFAULT '',
+            sort_order INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            is_seeded INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS service_groups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            slug TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            sort_order INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            is_seeded INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS service_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            group_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            sort_order INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            is_seeded INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    seed_catalog_data(conn)
+    seed_service_data(conn)
     conn.commit()
     conn.close()
 
@@ -284,6 +436,29 @@ class SettingsRequest(BaseModel):
 class PasswordChange(BaseModel):
     password: str
 
+class CatalogEntityRequest(BaseModel):
+    entity_type: str
+    parent_id: Optional[int] = None
+    name: str
+    slug: Optional[str] = None
+    url: Optional[str] = None
+    image: Optional[str] = ''
+    description: Optional[str] = ''
+    sort_order: int = 0
+    is_active: bool = True
+
+class ServiceGroupRequest(BaseModel):
+    title: str
+    slug: Optional[str] = None
+    description: Optional[str] = ''
+    sort_order: int = 0
+    is_active: bool = True
+
+class ServiceItemRequest(BaseModel):
+    title: str
+    sort_order: int = 0
+    is_active: bool = True
+
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
 @app.get("/")
@@ -410,6 +585,152 @@ def change_password(req: PasswordChange, token=Depends(get_token)):
     cfg["admin_password"] = simple_hash(req.password)
     save_config(cfg)
     return {"status": "changed"}
+
+@app.get("/api/catalog-structure")
+def get_catalog_structure():
+    conn = get_db()
+    payload = build_catalog_payload(conn)
+    conn.close()
+    return payload
+
+@app.get("/api/admin/catalog")
+def get_admin_catalog(token=Depends(get_token)):
+    conn = get_db()
+    payload = build_catalog_payload(conn)
+    conn.close()
+    return payload
+
+@app.post("/api/admin/catalog/entities")
+def create_catalog_entity(req: CatalogEntityRequest, token=Depends(get_token)):
+    entity_type = req.entity_type.strip()
+    if entity_type not in {"category", "subcategory", "product"}:
+        raise HTTPException(status_code=400, detail="Invalid entity type")
+    parent_id = req.parent_id
+    conn = get_db()
+    if entity_type == 'subcategory':
+        parent = conn.execute("SELECT entity_type FROM catalog_entities WHERE id=?", (parent_id,)).fetchone()
+        if not parent or parent['entity_type'] != 'category':
+            raise HTTPException(status_code=400, detail='Subcategory must belong to category')
+    if entity_type == 'product':
+        parent = conn.execute("SELECT entity_type FROM catalog_entities WHERE id=?", (parent_id,)).fetchone()
+        if not parent or parent['entity_type'] != 'subcategory':
+            raise HTTPException(status_code=400, detail='Product must belong to subcategory')
+    slug = slugify(req.slug or req.name)
+    if entity_type == 'category':
+        url = req.url or f"/catalog/{slug}/"
+    elif entity_type == 'subcategory':
+        parent = conn.execute("SELECT slug FROM catalog_entities WHERE id=?", (parent_id,)).fetchone()
+        url = req.url or f"/catalog/{parent['slug']}/{slug}/"
+    else:
+        parent = conn.execute("SELECT slug, parent_id FROM catalog_entities WHERE id=?", (parent_id,)).fetchone()
+        cat = conn.execute("SELECT slug FROM catalog_entities WHERE id=?", (parent['parent_id'],)).fetchone()
+        url = req.url or f"/catalog/{cat['slug']}/{parent['slug']}/{slug}/"
+    cur = conn.execute("INSERT INTO catalog_entities (entity_type, parent_id, name, slug, url, image, description, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (entity_type, parent_id, req.name.strip(), slug, url, req.image or '', req.description or '', req.sort_order, 1 if req.is_active else 0))
+    conn.commit()
+    entity_id = cur.lastrowid
+    row = dict(conn.execute("SELECT * FROM catalog_entities WHERE id=?", (entity_id,)).fetchone())
+    conn.close()
+    return row
+
+@app.put("/api/admin/catalog/entities/{entity_id}")
+def update_catalog_entity(entity_id: int, req: CatalogEntityRequest, token=Depends(get_token)):
+    conn = get_db()
+    current = conn.execute("SELECT * FROM catalog_entities WHERE id=?", (entity_id,)).fetchone()
+    if not current:
+        raise HTTPException(status_code=404, detail="Not found")
+    current = dict(current)
+    name = req.name.strip()
+    slug = slugify(req.slug or name)
+    parent_id = req.parent_id
+    entity_type = current['entity_type']
+    if entity_type != req.entity_type:
+        raise HTTPException(status_code=400, detail='Entity type cannot be changed')
+    if entity_type == 'category':
+        url = req.url or f"/catalog/{slug}/"
+    elif entity_type == 'subcategory':
+        parent = conn.execute("SELECT slug, entity_type FROM catalog_entities WHERE id=?", (parent_id,)).fetchone()
+        if not parent or parent['entity_type'] != 'category':
+            raise HTTPException(status_code=400, detail='Subcategory must belong to category')
+        url = req.url or f"/catalog/{parent['slug']}/{slug}/"
+    else:
+        parent = conn.execute("SELECT slug, parent_id, entity_type FROM catalog_entities WHERE id=?", (parent_id,)).fetchone()
+        if not parent or parent['entity_type'] != 'subcategory':
+            raise HTTPException(status_code=400, detail='Product must belong to subcategory')
+        cat = conn.execute("SELECT slug FROM catalog_entities WHERE id=?", (parent['parent_id'],)).fetchone()
+        url = req.url or f"/catalog/{cat['slug']}/{parent['slug']}/{slug}/"
+    conn.execute("UPDATE catalog_entities SET parent_id=?, name=?, slug=?, url=?, image=?, description=?, sort_order=?, is_active=? WHERE id=?", (parent_id, name, slug, url, req.image or '', req.description or '', req.sort_order, 1 if req.is_active else 0, entity_id))
+    conn.commit()
+    row = dict(conn.execute("SELECT * FROM catalog_entities WHERE id=?", (entity_id,)).fetchone())
+    conn.close()
+    return row
+
+@app.delete("/api/admin/catalog/entities/{entity_id}")
+def delete_catalog_entity(entity_id: int, token=Depends(get_token)):
+    conn = get_db()
+    ids = [entity_id]
+    idx = 0
+    while idx < len(ids):
+        children = conn.execute("SELECT id FROM catalog_entities WHERE parent_id=?", (ids[idx],)).fetchall()
+        ids.extend([r['id'] for r in children])
+        idx += 1
+    conn.executemany("DELETE FROM catalog_entities WHERE id=?", [(i,) for i in reversed(ids)])
+    conn.commit()
+    conn.close()
+    return {"deleted": ids}
+
+@app.post("/api/admin/services/groups")
+def create_service_group(req: ServiceGroupRequest, token=Depends(get_token)):
+    conn = get_db()
+    slug = slugify(req.slug or req.title)
+    cur = conn.execute("INSERT INTO service_groups (title, slug, description, sort_order, is_active) VALUES (?, ?, ?, ?, ?)", (req.title.strip(), slug, req.description or '', req.sort_order, 1 if req.is_active else 0))
+    conn.commit()
+    row = dict(conn.execute("SELECT * FROM service_groups WHERE id=?", (cur.lastrowid,)).fetchone())
+    conn.close()
+    return row
+
+@app.put("/api/admin/services/groups/{group_id}")
+def update_service_group(group_id: int, req: ServiceGroupRequest, token=Depends(get_token)):
+    conn = get_db()
+    conn.execute("UPDATE service_groups SET title=?, slug=?, description=?, sort_order=?, is_active=? WHERE id=?", (req.title.strip(), slugify(req.slug or req.title), req.description or '', req.sort_order, 1 if req.is_active else 0, group_id))
+    conn.commit()
+    row = dict(conn.execute("SELECT * FROM service_groups WHERE id=?", (group_id,)).fetchone())
+    conn.close()
+    return row
+
+@app.delete("/api/admin/services/groups/{group_id}")
+def delete_service_group(group_id: int, token=Depends(get_token)):
+    conn = get_db()
+    conn.execute("DELETE FROM service_items WHERE group_id=?", (group_id,))
+    conn.execute("DELETE FROM service_groups WHERE id=?", (group_id,))
+    conn.commit()
+    conn.close()
+    return {"deleted": group_id}
+
+@app.post("/api/admin/services/groups/{group_id}/items")
+def create_service_item(group_id: int, req: ServiceItemRequest, token=Depends(get_token)):
+    conn = get_db()
+    cur = conn.execute("INSERT INTO service_items (group_id, title, sort_order, is_active) VALUES (?, ?, ?, ?)", (group_id, req.title.strip(), req.sort_order, 1 if req.is_active else 0))
+    conn.commit()
+    row = dict(conn.execute("SELECT * FROM service_items WHERE id=?", (cur.lastrowid,)).fetchone())
+    conn.close()
+    return row
+
+@app.put("/api/admin/services/items/{item_id}")
+def update_service_item(item_id: int, req: ServiceItemRequest, token=Depends(get_token)):
+    conn = get_db()
+    conn.execute("UPDATE service_items SET title=?, sort_order=?, is_active=? WHERE id=?", (req.title.strip(), req.sort_order, 1 if req.is_active else 0, item_id))
+    conn.commit()
+    row = dict(conn.execute("SELECT * FROM service_items WHERE id=?", (item_id,)).fetchone())
+    conn.close()
+    return row
+
+@app.delete("/api/admin/services/items/{item_id}")
+def delete_service_item(item_id: int, token=Depends(get_token)):
+    conn = get_db()
+    conn.execute("DELETE FROM service_items WHERE id=?", (item_id,))
+    conn.commit()
+    conn.close()
+    return {"deleted": item_id}
 
 # ─── Entry point ──────────────────────────────────────────────────────────────
 
