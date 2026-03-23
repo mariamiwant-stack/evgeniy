@@ -52,6 +52,7 @@ except ImportError:
 
 CONFIG_FILE = Path(__file__).parent / "api_config.json"
 DB_FILE = Path(__file__).parent / "epm_crm.db"
+CATALOG_JSON_FILE = Path(__file__).parent / "catalog-data.json"
 SECRET_KEY = "epm-secret-change-in-production-" + secrets.token_hex(8)
 
 DEFAULT_CONFIG = {
@@ -80,6 +81,19 @@ CONFIG = load_config()
 
 CATALOG_ROOT = Path(__file__).parent / "catalog"
 UPLOAD_ROOT = Path(__file__).parent / "uploads"
+
+def save_catalog_json(payload: dict):
+    with open(CATALOG_JSON_FILE, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+def load_catalog_json() -> Optional[dict]:
+    if not CATALOG_JSON_FILE.exists():
+        return None
+    try:
+        with open(CATALOG_JSON_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
 
 def slugify(value: str) -> str:
     value = (value or "").strip().lower()
@@ -186,6 +200,15 @@ def build_catalog_payload(conn):
         groups.append(g)
     return {"categories": categories, "service_groups": groups}
 
+def get_catalog_payload(conn, force_refresh: bool = False):
+    if not force_refresh:
+      cached = load_catalog_json()
+      if cached:
+          return cached
+    payload = build_catalog_payload(conn)
+    save_catalog_json(payload)
+    return payload
+
 
 # ─── Database ─────────────────────────────────────────────────────────────────
 
@@ -264,6 +287,7 @@ def init_db():
     seed_catalog_data(conn)
     seed_service_data(conn)
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     conn.close()
 
 init_db()
@@ -472,6 +496,7 @@ def restore_snapshot(conn, snapshot_id: int) -> dict:
     cfg["maintenance_message"] = payload.get("maintenance_message") or DEFAULT_CONFIG["maintenance_message"]
     save_config(cfg)
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     return {"id": row["id"], "label": row["label"], "created_at": row["created_at"]}
 
 # ─── Models ───────────────────────────────────────────────────────────────────
@@ -692,14 +717,14 @@ def change_password(req: PasswordChange, token=Depends(get_token)):
 @app.get("/api/catalog-structure")
 def get_catalog_structure():
     conn = get_db()
-    payload = build_catalog_payload(conn)
+    payload = get_catalog_payload(conn)
     conn.close()
     return payload
 
 @app.get("/api/admin/catalog")
 def get_admin_catalog(token=Depends(get_token)):
     conn = get_db()
-    payload = build_catalog_payload(conn)
+    payload = get_catalog_payload(conn, force_refresh=True)
     conn.close()
     return payload
 
@@ -778,6 +803,7 @@ def create_catalog_entity(req: CatalogEntityRequest, token=Depends(get_token)):
     cur = conn.execute("INSERT INTO catalog_entities (entity_type, parent_id, name, slug, url, image, description, sort_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (entity_type, parent_id, req.name.strip(), slug, url, req.image or '', req.description or '', req.sort_order, 1 if req.is_active else 0))
     conn.commit()
     entity_id = cur.lastrowid
+    save_catalog_json(build_catalog_payload(conn))
     row = dict(conn.execute("SELECT * FROM catalog_entities WHERE id=?", (entity_id,)).fetchone())
     conn.close()
     return row
@@ -812,6 +838,7 @@ def update_catalog_entity(entity_id: int, req: CatalogEntityRequest, token=Depen
     conn.execute("UPDATE catalog_entities SET parent_id=?, name=?, slug=?, url=?, image=?, description=?, sort_order=?, is_active=? WHERE id=?", (parent_id, name, slug, url, req.image or '', req.description or '', req.sort_order, 1 if req.is_active else 0, entity_id))
     update_descendant_urls(conn, entity_id)
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     row = dict(conn.execute("SELECT * FROM catalog_entities WHERE id=?", (entity_id,)).fetchone())
     conn.close()
     return row
@@ -829,6 +856,7 @@ def delete_catalog_entity(entity_id: int, token=Depends(get_token)):
         idx += 1
     conn.executemany("DELETE FROM catalog_entities WHERE id=?", [(i,) for i in reversed(ids)])
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     conn.close()
     return {"deleted": ids}
 
@@ -839,6 +867,7 @@ def create_service_group(req: ServiceGroupRequest, token=Depends(get_token)):
     slug = slugify(req.slug or req.title)
     cur = conn.execute("INSERT INTO service_groups (title, slug, description, sort_order, is_active) VALUES (?, ?, ?, ?, ?)", (req.title.strip(), slug, req.description or '', req.sort_order, 1 if req.is_active else 0))
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     row = dict(conn.execute("SELECT * FROM service_groups WHERE id=?", (cur.lastrowid,)).fetchone())
     conn.close()
     return row
@@ -850,6 +879,7 @@ def update_service_group(group_id: int, req: ServiceGroupRequest, token=Depends(
     create_snapshot(conn, f"Перед изменением группы услуг: {current['title'] if current else group_id}")
     conn.execute("UPDATE service_groups SET title=?, slug=?, description=?, sort_order=?, is_active=? WHERE id=?", (req.title.strip(), slugify(req.slug or req.title), req.description or '', req.sort_order, 1 if req.is_active else 0, group_id))
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     row = dict(conn.execute("SELECT * FROM service_groups WHERE id=?", (group_id,)).fetchone())
     conn.close()
     return row
@@ -862,6 +892,7 @@ def delete_service_group(group_id: int, token=Depends(get_token)):
     conn.execute("DELETE FROM service_items WHERE group_id=?", (group_id,))
     conn.execute("DELETE FROM service_groups WHERE id=?", (group_id,))
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     conn.close()
     return {"deleted": group_id}
 
@@ -871,6 +902,7 @@ def create_service_item(group_id: int, req: ServiceItemRequest, token=Depends(ge
     create_snapshot(conn, f"Перед добавлением услуги: {req.title.strip()}")
     cur = conn.execute("INSERT INTO service_items (group_id, title, sort_order, is_active) VALUES (?, ?, ?, ?)", (group_id, req.title.strip(), req.sort_order, 1 if req.is_active else 0))
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     row = dict(conn.execute("SELECT * FROM service_items WHERE id=?", (cur.lastrowid,)).fetchone())
     conn.close()
     return row
@@ -882,6 +914,7 @@ def update_service_item(item_id: int, req: ServiceItemRequest, token=Depends(get
     create_snapshot(conn, f"Перед изменением услуги: {current['title'] if current else item_id}")
     conn.execute("UPDATE service_items SET title=?, sort_order=?, is_active=? WHERE id=?", (req.title.strip(), req.sort_order, 1 if req.is_active else 0, item_id))
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     row = dict(conn.execute("SELECT * FROM service_items WHERE id=?", (item_id,)).fetchone())
     conn.close()
     return row
@@ -893,6 +926,7 @@ def delete_service_item(item_id: int, token=Depends(get_token)):
     create_snapshot(conn, f"Перед удалением услуги: {current['title'] if current else item_id}")
     conn.execute("DELETE FROM service_items WHERE id=?", (item_id,))
     conn.commit()
+    save_catalog_json(build_catalog_payload(conn))
     conn.close()
     return {"deleted": item_id}
 

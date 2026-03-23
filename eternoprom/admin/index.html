@@ -348,9 +348,12 @@ tr:hover td{background:#fafbff;}
 <div class="catalog-admin-toolbar">
 <div>
 <h3>Мини-просмотрщик каталога</h3>
-<div class="catalog-admin-toolbar__note">Во вкладке можно открыть любой уровень каталога, посмотреть сетку карточек и сразу добавить новую карточку в текущий раздел. Для удаления карточек всегда запрашивается подтверждение.</div>
+<div class="catalog-admin-toolbar__note">Во вкладке можно открыть любой уровень каталога, посмотреть сетку карточек, перейти в «режим бога» на живой странице, а также создать, изменить или удалить карточки без программирования. Данные автоматически синхронизируются в JSON-хранилище.</div>
 </div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+<button class="crm-btn crm-btn-ghost" onclick="openCatalogPageInGodMode()">Открыть страницу в режиме бога</button>
 <button class="crm-btn crm-btn-primary" onclick="resetCatalogBrowser()">Вернуться к корню</button>
+</div>
 </div>
 <div id="catalog-admin-msg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:14px;"></div>
 <div class="catalog-admin-browser">
@@ -362,6 +365,7 @@ tr:hover td{background:#fafbff;}
 <div class="catalog-admin-panel catalog-admin-panel--sticky">
 <h3 id="catalog-form-title">Добавить карточку</h3>
 <div style="font-size:12px;color:#8a96ae;line-height:1.5;margin-bottom:14px;" id="catalog-form-hint">Выберите уровень каталога слева. Форма автоматически переключится на нужный тип карточки.</div>
+<input id="catalog-edit-id" type="hidden">
 <div class="catalog-admin-preview">
 <div class="catalog-admin-preview__box" id="catalog-image-preview">Фото карточки появится здесь</div>
 </div>
@@ -384,7 +388,7 @@ tr:hover td{background:#fafbff;}
 </div>
 <div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Описание</label><textarea class="crm-input" id="catalog-description" rows="4" placeholder="Например: Трубный прокат — главная категория. Трубы стальные — подкатегория товара."></textarea></div>
 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-<button class="crm-btn crm-btn-primary" onclick="createCatalogEntity()">Добавить карточку</button>
+<button class="crm-btn crm-btn-primary" id="catalog-submit-btn" onclick="saveCatalogEntity()">Добавить карточку</button>
 <button class="crm-btn crm-btn-ghost" onclick="clearCatalogForm()">Очистить форму</button>
 </div>
 </div>
@@ -918,6 +922,24 @@ function resetCatalogBrowser(){
   renderCatalogAdmin();
 }
 
+function getCurrentCatalogPageUrl(){
+  const context = getCurrentCatalogContext();
+  if (CATALOG_BROWSER_STATE.level === 'subcategory' && context.items && context.parentId) {
+    const relation = getSubcategoryById(CATALOG_BROWSER_STATE.subcategoryId);
+    return relation && relation.subcategory ? ('../' + relation.subcategory.url.replace(/^\//, '')) : '../catalog.html';
+  }
+  if (CATALOG_BROWSER_STATE.level === 'category') {
+    const category = getCategoryById(CATALOG_BROWSER_STATE.categoryId);
+    return category ? ('../' + category.url.replace(/^\//, '')) : '../catalog.html';
+  }
+  return '../catalog.html';
+}
+
+function openCatalogPageInGodMode(){
+  const url = getCurrentCatalogPageUrl();
+  window.open(url, '_blank', 'noopener');
+}
+
 function openCatalogLevel(level, id){
   if (level === 'root') {
     resetCatalogBrowser();
@@ -1023,6 +1045,7 @@ function renderCatalogViewer(){
             </div>
             <div class="catalog-admin-card__actions">
               ${openButton}
+              <button class="catalog-admin-card__btn catalog-admin-card__btn--open" onclick="editCatalogEntity(${item.id})">Изменить</button>
               <button class="catalog-admin-card__btn catalog-admin-card__btn--danger" onclick='deleteCatalogEntity(${item.id}, ${JSON.stringify(item.name)})'>Удалить</button>
             </div>
           </div>
@@ -1045,6 +1068,8 @@ function syncCatalogFormWithContext(){
     : context.level === 'category'
       ? 'Вы внутри главной категории. Новая карточка будет добавлена в текущую сетку подкатегорий.'
       : 'Вы внутри подкатегории. Новая карточка будет добавлена в текущую товарную сетку.';
+  const submitBtn = document.getElementById('catalog-submit-btn');
+  if (submitBtn && !document.getElementById('catalog-edit-id').value) submitBtn.textContent = context.typeToCreate === 'product' ? 'Добавить карточку' : 'Добавить карточку';
   refreshCatalogParentOptions();
 }
 
@@ -1063,12 +1088,57 @@ function updateCatalogImagePreview(){
 }
 
 function clearCatalogForm(){
+  const editId = document.getElementById('catalog-edit-id');
+  if (editId) editId.value = '';
   ['catalog-name','catalog-slug','catalog-url','catalog-description','catalog-image'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('catalog-sort').value = '0';
   syncCatalogFormWithContext();
   updateCatalogImagePreview();
+}
+
+function editCatalogEntity(id){
+  let entity = null;
+  let type = 'category';
+  let parentId = '';
+  (CATALOG_DATA.categories || []).forEach(category => {
+    if (category.id === id) {
+      entity = category;
+      type = 'category';
+      parentId = '';
+    }
+    (category.subcategories || []).forEach(subcategory => {
+      if (subcategory.id === id) {
+        entity = subcategory;
+        type = 'subcategory';
+        parentId = category.id;
+      }
+      (subcategory.products || []).forEach(product => {
+        if (product.id === id) {
+          entity = product;
+          type = 'product';
+          parentId = subcategory.id;
+        }
+      });
+    });
+  });
+  if (!entity) return;
+  document.getElementById('catalog-edit-id').value = entity.id;
+  document.getElementById('catalog-entity-type').value = type;
+  refreshCatalogParentOptions();
+  if (parentId !== '') document.getElementById('catalog-parent').value = parentId;
+  document.getElementById('catalog-name').value = entity.name || '';
+  document.getElementById('catalog-slug').value = entity.slug || '';
+  document.getElementById('catalog-image').value = entity.image || '';
+  document.getElementById('catalog-sort').value = entity.sort_order || 0;
+  document.getElementById('catalog-url').value = entity.url || '';
+  document.getElementById('catalog-description').value = entity.description || '';
+  document.getElementById('catalog-submit-btn').textContent = 'Сохранить изменения';
+  document.getElementById('catalog-form-title').textContent = 'Редактирование карточки';
+  document.getElementById('catalog-form-hint').textContent = 'Измените поля и нажмите «Сохранить изменения». Если хотите создать новую карточку, сначала очистите форму.';
+  updateCatalogImagePreview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function loadCatalogAdminData() {
@@ -1121,7 +1191,7 @@ function renderCatalogAdmin() {
     </div>`).join('') || '<div class="catalog-admin-empty">Группы услуг пока не загружены.</div>';
 }
 
-async function createCatalogEntity(){
+async function saveCatalogEntity(){
   try {
     const payload = {
       entity_type: document.getElementById('catalog-entity-type').value,
@@ -1134,11 +1204,12 @@ async function createCatalogEntity(){
       description: document.getElementById('catalog-description').value.trim(),
       is_active: true
     };
+    const editId = document.getElementById('catalog-edit-id').value;
     if (!payload.name) return showInlineMsg('catalog-admin-msg','Укажите название карточки', false);
     if (payload.entity_type !== 'category' && !payload.parent_id) return showInlineMsg('catalog-admin-msg','Выберите раздел, в который нужно добавить карточку', false);
-    const res = await fetch(API + '/api/admin/catalog/entities', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify(payload) });
+    const res = await fetch(API + '/api/admin/catalog/entities' + (editId ? '/' + editId : ''), { method: editId ? 'PUT' : 'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify(payload) });
     if (!res.ok) throw new Error();
-    showInlineMsg('catalog-admin-msg','Карточка успешно добавлена');
+    showInlineMsg('catalog-admin-msg', editId ? 'Карточка успешно обновлена' : 'Карточка успешно добавлена');
     clearCatalogForm();
     await loadCatalogAdminData();
   } catch (e) { showInlineMsg('catalog-admin-msg','Не удалось сохранить карточку каталога', false); }
