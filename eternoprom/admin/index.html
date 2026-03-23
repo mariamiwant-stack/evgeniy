@@ -104,6 +104,43 @@ tr:hover td{background:#fafbff;}
 .crm-input:focus{border-color:#001952;}
 .settings-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 
+/* Catalog admin */
+#page-catalog-admin .settings-section{background:#fff;border:1px solid #e8ecf4;border-radius:12px;padding:20px 24px;margin-bottom:16px;}
+#page-catalog-admin .settings-section h3{font-size:14px;font-weight:700;color:#001952;margin-bottom:14px;}
+.catalog-admin-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px;}
+.catalog-admin-toolbar__note{font-size:12px;color:#8a96ae;line-height:1.5;max-width:760px;}
+.catalog-admin-browser{display:grid;grid-template-columns:minmax(300px,2fr) minmax(320px,1fr);gap:18px;align-items:start;}
+.catalog-admin-panel{border:1px solid #e8ecf4;border-radius:16px;background:#fbfcff;padding:18px;}
+.catalog-admin-panel--sticky{position:sticky;top:20px;}
+.catalog-admin-breadcrumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.catalog-admin-crumb{border:1px solid #d8dfef;background:#fff;color:#001952;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.catalog-admin-crumb.active{background:#001952;border-color:#001952;color:#fff;}
+.catalog-admin-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.catalog-admin-tag{background:#eef2ff;color:#274690;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;}
+.catalog-admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+.catalog-admin-card{display:flex;flex-direction:column;min-height:220px;background:#fff;border:1px solid #e5ebf5;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,25,82,.04);}
+.catalog-admin-card__image{height:128px;background:linear-gradient(135deg,#eef2ff,#f8fafc);display:flex;align-items:center;justify-content:center;color:#8a96ae;font-size:12px;text-align:center;padding:14px;background-size:cover;background-position:center;}
+.catalog-admin-card__body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1;}
+.catalog-admin-card__title{font-size:15px;font-weight:700;color:#001952;line-height:1.35;}
+.catalog-admin-card__desc{font-size:12px;color:#63708a;line-height:1.55;min-height:56px;}
+.catalog-admin-card__footer{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:auto;}
+.catalog-admin-card__hint{font-size:11px;color:#8a96ae;}
+.catalog-admin-card__actions{display:flex;gap:8px;flex-wrap:wrap;}
+.catalog-admin-card__btn{border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.catalog-admin-card__btn--open{background:#001952;color:#fff;}
+.catalog-admin-card__btn--danger{background:#fff1f2;color:#9f1239;}
+.catalog-admin-empty{border:1px dashed #cbd5e1;border-radius:16px;background:#fff;padding:24px;text-align:center;color:#8a96ae;font-size:13px;}
+.catalog-admin-form{display:flex;flex-direction:column;gap:12px;}
+.catalog-admin-form__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.catalog-admin-preview{border:1px dashed #d6dff2;border-radius:14px;padding:12px;background:#fff;}
+.catalog-admin-preview__box{height:140px;border-radius:12px;background:linear-gradient(135deg,#eef2ff,#f8fafc);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;text-align:center;color:#8a96ae;font-size:12px;padding:16px;}
+.catalog-admin-services{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.catalog-admin-service-card{border:1px solid #e8ecf4;border-radius:14px;background:#fff;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.catalog-admin-service-items{display:flex;flex-wrap:wrap;gap:8px;}
+.catalog-admin-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;background:#f8fafc;border:1px solid #e8ecf4;border-radius:999px;font-size:12px;}
+@media(max-width:1100px){.catalog-admin-browser{grid-template-columns:1fr;}.catalog-admin-panel--sticky{position:static;}}
+@media(max-width:768px){.catalog-admin-form__grid,.settings-row{grid-template-columns:1fr;}}
+
 /* Login */
 #crm-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f2f8;}
 .login-box{background:#fff;border-radius:16px;padding:36px 40px;width:380px;box-shadow:0 8px 32px rgba(0,25,82,.12);}
@@ -308,27 +345,54 @@ tr:hover td{background:#fafbff;}
 <!-- CATALOG ADMIN -->
 <div id="page-catalog-admin" style="display:none;">
 <div class="settings-section">
-<h3>Добавить элемент каталога</h3>
-<div class="settings-row">
-<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Тип</label><select class="crm-input" id="catalog-entity-type" onchange="refreshCatalogParentOptions()"><option value="category">Категория</option><option value="subcategory">Подкатегория</option><option value="product">Карточка товара</option></select></div>
-<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Родитель</label><select class="crm-input" id="catalog-parent"></select></div>
+<div class="catalog-admin-toolbar">
+<div>
+<h3>Мини-просмотрщик каталога</h3>
+<div class="catalog-admin-toolbar__note">Во вкладке можно открыть любой уровень каталога, посмотреть сетку карточек и сразу добавить новую карточку в текущий раздел. Для удаления карточек всегда запрашивается подтверждение.</div>
 </div>
-<div class="settings-row">
-<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Название</label><input class="crm-input" id="catalog-name" placeholder="Например: Труба профильная оцинкованная"></div>
-<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Slug / URL часть</label><input class="crm-input" id="catalog-slug" placeholder="truba-profilnaya-ocinkovannaya"></div>
+<button class="crm-btn crm-btn-primary" onclick="resetCatalogBrowser()">Вернуться к корню</button>
 </div>
-<div class="settings-row">
+<div id="catalog-admin-msg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:14px;"></div>
+<div class="catalog-admin-browser">
+<div class="catalog-admin-panel">
+<div class="catalog-admin-breadcrumbs" id="catalog-admin-breadcrumbs"></div>
+<div class="catalog-admin-meta" id="catalog-admin-meta"></div>
+<div class="catalog-admin-grid" id="catalog-admin-viewer"></div>
+</div>
+<div class="catalog-admin-panel catalog-admin-panel--sticky">
+<h3 id="catalog-form-title">Добавить карточку</h3>
+<div style="font-size:12px;color:#8a96ae;line-height:1.5;margin-bottom:14px;" id="catalog-form-hint">Выберите уровень каталога слева. Форма автоматически переключится на нужный тип карточки.</div>
+<div class="catalog-admin-preview">
+<div class="catalog-admin-preview__box" id="catalog-image-preview">Фото карточки появится здесь</div>
+</div>
+<div class="catalog-admin-form" style="margin-top:14px;">
+<div class="catalog-admin-form__grid">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Тип карточки</label><select class="crm-input" id="catalog-entity-type" onchange="refreshCatalogParentOptions()"><option value="category">Главная категория</option><option value="subcategory">Подкатегория</option><option value="product">Карточка товара</option></select></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Куда добавить</label><select class="crm-input" id="catalog-parent"></select></div>
+</div>
+<div class="catalog-admin-form__grid">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Название</label><input class="crm-input" id="catalog-name" placeholder="Например: Трубы стальные"></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Slug / URL часть</label><input class="crm-input" id="catalog-slug" placeholder="truby-stalnye"></div>
+</div>
+<div class="catalog-admin-form__grid">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Фото / путь к изображению</label><input class="crm-input" id="catalog-image" placeholder="/eternoprom/trub_vid.jpg" oninput="updateCatalogImagePreview()"></div>
 <div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Порядок сортировки</label><input class="crm-input" id="catalog-sort" type="number" value="0"></div>
-<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Ссылка (необязательно)</label><input class="crm-input" id="catalog-url" placeholder="/catalog/.../"></div>
 </div>
-<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Описание</label><textarea class="crm-input" id="catalog-description" rows="3" placeholder="Краткое описание карточки или раздела"></textarea></div>
-<div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
-<button class="crm-btn crm-btn-primary" onclick="createCatalogEntity()">Добавить в каталог</button>
-<div id="catalog-admin-msg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;"></div>
+<div class="catalog-admin-form__grid">
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Ссылка (необязательно)</label><input class="crm-input" id="catalog-url" placeholder="/catalog/trubnyj-prokat/"></div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Родитель для создания</label><input class="crm-input" id="catalog-parent-readonly" disabled value="Автоматически по выбранному разделу"></div>
+</div>
+<div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Описание</label><textarea class="crm-input" id="catalog-description" rows="4" placeholder="Например: Трубный прокат — главная категория. Трубы стальные — подкатегория товара."></textarea></div>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+<button class="crm-btn crm-btn-primary" onclick="createCatalogEntity()">Добавить карточку</button>
+<button class="crm-btn crm-btn-ghost" onclick="clearCatalogForm()">Очистить форму</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="settings-section">
-<h3>Добавить услугу</h3>
+<h3>Услуги</h3>
 <div class="settings-row">
 <div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Группа услуг</label><select class="crm-input" id="service-group-select"></select></div>
 <div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Новая группа</label><input class="crm-input" id="service-group-name" placeholder="Например: Металлообработка деталей"></div>
@@ -337,19 +401,12 @@ tr:hover td{background:#fafbff;}
 <div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Новая услуга</label><input class="crm-input" id="service-item-name" placeholder="Например: Лазерная маркировка металла"></div>
 <div><label style="font-size:12px;color:#8a96ae;display:block;margin-bottom:5px;">Порядок сортировки</label><input class="crm-input" id="service-sort" type="number" value="0"></div>
 </div>
-<div style="display:flex;gap:10px;align-items:center;margin-top:14px;">
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px;">
 <button class="crm-btn crm-btn-primary" onclick="createServiceGroup()">Создать группу</button>
 <button class="crm-btn crm-btn-ghost" onclick="createServiceItem()">Добавить услугу</button>
 <div id="service-admin-msg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;"></div>
 </div>
-</div>
-<div class="settings-section">
-<h3>Текущее дерево каталога</h3>
-<div id="catalog-admin-tree" style="display:flex;flex-direction:column;gap:14px;"></div>
-</div>
-<div class="settings-section">
-<h3>Текущие услуги</h3>
-<div id="service-admin-tree" style="display:flex;flex-direction:column;gap:14px;"></div>
+<div id="service-admin-tree" class="catalog-admin-services" style="margin-top:16px;"></div>
 </div>
 </div>
 
@@ -833,10 +890,182 @@ function exportCSV(type) {
 
 // ─── Catalog admin ─────────────────────────────────────────────────────────────
 let CATALOG_DATA = {categories:[], service_groups:[]};
+let CATALOG_BROWSER_STATE = { level: 'root', categoryId: null, subcategoryId: null };
 
 function showInlineMsg(id, text, ok=true){
   const el=document.getElementById(id); if(!el) return;
   el.style.display='block'; el.style.background=ok?'#f0fdf4':'#fff0f0'; el.style.color=ok?'#166534':'#991b1b'; el.textContent=text;
+}
+
+function escapeHtml(value=''){
+  return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function getCategoryById(id){ return (CATALOG_DATA.categories||[]).find(item => item.id === id) || null; }
+function getSubcategoryById(id){
+  for (const category of (CATALOG_DATA.categories||[])) {
+    const found = (category.subcategories||[]).find(item => item.id === id);
+    if (found) return { category, subcategory: found };
+  }
+  return { category: null, subcategory: null };
+}
+
+function resetCatalogBrowser(){
+  CATALOG_BROWSER_STATE = { level: 'root', categoryId: null, subcategoryId: null };
+  renderCatalogAdmin();
+}
+
+function openCatalogLevel(level, id){
+  if (level === 'root') {
+    resetCatalogBrowser();
+    return;
+  }
+  if (level === 'category') {
+    CATALOG_BROWSER_STATE = { level, categoryId: id, subcategoryId: null };
+  } else {
+    const relation = getSubcategoryById(id);
+    CATALOG_BROWSER_STATE = { level, categoryId: relation.category ? relation.category.id : null, subcategoryId: id };
+  }
+  renderCatalogAdmin();
+}
+
+function getCurrentCatalogContext(){
+  const level = CATALOG_BROWSER_STATE.level;
+  if (level === 'category') {
+    const category = getCategoryById(CATALOG_BROWSER_STATE.categoryId);
+    return {
+      level,
+      title: category ? category.name : 'Категория не выбрана',
+      hint: 'Здесь отображаются карточки подкатегорий выбранной главной категории.',
+      parentLabel: category ? category.name : 'Корень каталога',
+      typeToCreate: 'subcategory',
+      parentId: category ? category.id : null,
+      items: category ? (category.subcategories || []) : []
+    };
+  }
+  if (level === 'subcategory') {
+    const relation = getSubcategoryById(CATALOG_BROWSER_STATE.subcategoryId);
+    const subcategory = relation.subcategory;
+    return {
+      level,
+      title: subcategory ? subcategory.name : 'Подкатегория не выбрана',
+      hint: 'Здесь отображаются товарные карточки внутри выбранной подкатегории.',
+      parentLabel: subcategory ? subcategory.name : 'Подкатегория',
+      typeToCreate: 'product',
+      parentId: subcategory ? subcategory.id : null,
+      items: subcategory ? (subcategory.products || []) : []
+    };
+  }
+  return {
+    level: 'root',
+    title: 'Главные категории каталога',
+    hint: 'Откройте категорию, чтобы увидеть вложенные карточки, или добавьте новую главную категорию прямо в сетку.',
+    parentLabel: 'Корень каталога',
+    typeToCreate: 'category',
+    parentId: null,
+    items: CATALOG_DATA.categories || []
+  };
+}
+
+function getCardMeta(item){
+  if (item.entity_type === 'category') return `${(item.subcategory_count || (item.subcategories||[]).length || 0)} подкатегорий`;
+  if (item.entity_type === 'subcategory') return `${(item.product_count || (item.products||[]).length || 0)} карточек`;
+  return item.url || 'Карточка товара';
+}
+
+function renderCatalogBreadcrumbs(){
+  const container = document.getElementById('catalog-admin-breadcrumbs');
+  if (!container) return;
+  const crumbs = [{ label: 'Каталог', level: 'root', id: null, active: CATALOG_BROWSER_STATE.level === 'root' }];
+  if (CATALOG_BROWSER_STATE.categoryId) {
+    const category = getCategoryById(CATALOG_BROWSER_STATE.categoryId);
+    if (category) crumbs.push({ label: category.name, level: 'category', id: category.id, active: CATALOG_BROWSER_STATE.level === 'category' });
+  }
+  if (CATALOG_BROWSER_STATE.subcategoryId) {
+    const relation = getSubcategoryById(CATALOG_BROWSER_STATE.subcategoryId);
+    if (relation.subcategory) crumbs.push({ label: relation.subcategory.name, level: 'subcategory', id: relation.subcategory.id, active: CATALOG_BROWSER_STATE.level === 'subcategory' });
+  }
+  container.innerHTML = crumbs.map(crumb => `<button class="catalog-admin-crumb ${crumb.active ? 'active' : ''}" onclick="openCatalogLevel('${crumb.level}', ${crumb.id === null ? 'null' : crumb.id})">${escapeHtml(crumb.label)}</button>`).join('');
+}
+
+function renderCatalogViewer(){
+  const meta = document.getElementById('catalog-admin-meta');
+  const viewer = document.getElementById('catalog-admin-viewer');
+  if (!viewer || !meta) return;
+  const context = getCurrentCatalogContext();
+  meta.innerHTML = `
+    <span class="catalog-admin-tag">${escapeHtml(context.title)}</span>
+    <span class="catalog-admin-tag">${escapeHtml(context.hint)}</span>
+    <span class="catalog-admin-tag">Всего карточек: ${context.items.length}</span>`;
+  if (!context.items.length) {
+    viewer.innerHTML = `<div class="catalog-admin-empty">В этом разделе пока нет карточек. Заполните форму справа и добавьте первую карточку.</div>`;
+    return;
+  }
+  viewer.innerHTML = context.items.map(item => {
+    const isProduct = item.entity_type === 'product';
+    const openButton = !isProduct ? `<button class="catalog-admin-card__btn catalog-admin-card__btn--open" onclick="openCatalogLevel('${item.entity_type}', ${item.id})">Открыть</button>` : '';
+    const desc = item.description ? escapeHtml(item.description) : (isProduct ? 'Описание пока не заполнено.' : 'Описание раздела пока не заполнено.');
+    const image = item.image ? `style="background-image:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.08)),url('${escapeHtml(item.image)}');"` : '';
+    const placeholder = item.image ? '' : 'Фото не добавлено';
+    return `
+      <article class="catalog-admin-card">
+        <div class="catalog-admin-card__image" ${image}>${placeholder}</div>
+        <div class="catalog-admin-card__body">
+          <div class="catalog-admin-card__title">${escapeHtml(item.name)}</div>
+          <div class="catalog-admin-card__desc">${desc}</div>
+          <div class="catalog-admin-card__footer">
+            <div>
+              <div class="catalog-admin-card__hint">${escapeHtml(getCardMeta(item))}</div>
+              <div class="catalog-admin-card__hint">${escapeHtml(item.url || 'URL будет сгенерирован автоматически')}</div>
+            </div>
+            <div class="catalog-admin-card__actions">
+              ${openButton}
+              <button class="catalog-admin-card__btn catalog-admin-card__btn--danger" onclick='deleteCatalogEntity(${item.id}, ${JSON.stringify(item.name)})'>Удалить</button>
+            </div>
+          </div>
+        </div>
+      </article>`;
+  }).join('');
+}
+
+function syncCatalogFormWithContext(){
+  const context = getCurrentCatalogContext();
+  const typeSelect = document.getElementById('catalog-entity-type');
+  const parentReadonly = document.getElementById('catalog-parent-readonly');
+  const title = document.getElementById('catalog-form-title');
+  const hint = document.getElementById('catalog-form-hint');
+  if (typeSelect) typeSelect.value = context.typeToCreate;
+  if (parentReadonly) parentReadonly.value = context.parentLabel;
+  if (title) title.textContent = context.typeToCreate === 'category' ? 'Добавить главную категорию' : context.typeToCreate === 'subcategory' ? 'Добавить подкатегорию' : 'Добавить карточку товара';
+  if (hint) hint.textContent = context.level === 'root'
+    ? 'Сейчас вы находитесь в корне каталога. Новая карточка попадёт в общую сетку главных категорий.'
+    : context.level === 'category'
+      ? 'Вы внутри главной категории. Новая карточка будет добавлена в текущую сетку подкатегорий.'
+      : 'Вы внутри подкатегории. Новая карточка будет добавлена в текущую товарную сетку.';
+  refreshCatalogParentOptions();
+}
+
+function updateCatalogImagePreview(){
+  const input = document.getElementById('catalog-image');
+  const box = document.getElementById('catalog-image-preview');
+  if (!input || !box) return;
+  const value = input.value.trim();
+  if (value) {
+    box.style.backgroundImage = `linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.1)), url('${value.replace(/'/g, "%27")}')`;
+    box.textContent = 'Предпросмотр фото карточки';
+  } else {
+    box.style.backgroundImage = 'linear-gradient(135deg,#eef2ff,#f8fafc)';
+    box.textContent = 'Фото карточки появится здесь';
+  }
+}
+
+function clearCatalogForm(){
+  ['catalog-name','catalog-slug','catalog-url','catalog-description','catalog-image'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('catalog-sort').value = '0';
+  syncCatalogFormWithContext();
+  updateCatalogImagePreview();
 }
 
 async function loadCatalogAdminData() {
@@ -850,54 +1079,43 @@ async function loadCatalogAdminData() {
 }
 
 function refreshCatalogParentOptions() {
-  const type=document.getElementById('catalog-entity-type').value;
-  const select=document.getElementById('catalog-parent');
+  const type = document.getElementById('catalog-entity-type').value;
+  const select = document.getElementById('catalog-parent');
   if (!select) return;
-  if (type === 'category') { select.innerHTML='<option value="">Не требуется</option>'; return; }
-  let options=[];
-  if (type === 'subcategory') {
-    options = CATALOG_DATA.categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`);
+  let options = [];
+  const context = getCurrentCatalogContext();
+  if (type === 'category') {
+    options = ['<option value="">Корень каталога</option>'];
+  } else if (type === 'subcategory') {
+    options = (CATALOG_DATA.categories||[]).map(cat => `<option value="${cat.id}" ${context.parentId === cat.id ? 'selected' : ''}>${escapeHtml(cat.name)}</option>`);
   } else {
-    CATALOG_DATA.categories.forEach(cat => (cat.subcategories||[]).forEach(sub => { options.push(`<option value="${sub.id}">${cat.name} → ${sub.name}</option>`); }));
+    (CATALOG_DATA.categories||[]).forEach(cat => (cat.subcategories||[]).forEach(sub => {
+      options.push(`<option value="${sub.id}" ${context.parentId === sub.id ? 'selected' : ''}>${escapeHtml(cat.name)} → ${escapeHtml(sub.name)}</option>`);
+    }));
   }
-  select.innerHTML=options.join('') || '<option value="">Нет доступных родителей</option>';
+  select.innerHTML = options.join('') || '<option value="">Нет доступных родителей</option>';
 }
 
 function refreshServiceGroupOptions(){
   const select=document.getElementById('service-group-select'); if(!select) return;
-  select.innerHTML = (CATALOG_DATA.service_groups||[]).map(g => `<option value="${g.id}">${g.title}</option>`).join('') || '<option value="">Нет групп</option>';
+  select.innerHTML = (CATALOG_DATA.service_groups||[]).map(g => `<option value="${g.id}">${escapeHtml(g.title)}</option>`).join('') || '<option value="">Нет групп</option>';
 }
 
 function renderCatalogAdmin() {
-  refreshCatalogParentOptions(); refreshServiceGroupOptions();
-  const tree=document.getElementById('catalog-admin-tree');
-  if (tree) tree.innerHTML = (CATALOG_DATA.categories||[]).map(cat => `
-    <div style="border:1px solid #e8ecf4;border-radius:12px;padding:16px;">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-        <div><div style="font-weight:700;color:#001952;">${cat.name}</div><div style="font-size:12px;color:#8a96ae;">${cat.url}</div></div>
-        <button class="crm-btn crm-btn-ghost" onclick="deleteCatalogEntity(${cat.id})">Удалить</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;padding-left:12px;border-left:2px solid #f0f3f9;">
-        ${(cat.subcategories||[]).map(sub => `
-          <div>
-            <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-              <div><div style="font-weight:600;">${sub.name}</div><div style="font-size:12px;color:#8a96ae;">${sub.url}</div></div>
-              <button class="crm-btn crm-btn-ghost" onclick="deleteCatalogEntity(${sub.id})">Удалить</button>
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${(sub.products||[]).map(prod => `<span style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:#f9fafc;border:1px solid #e8ecf4;border-radius:999px;font-size:12px;">${prod.name}<button onclick="deleteCatalogEntity(${prod.id})" style="background:none;border:none;color:#8B1A1A;cursor:pointer;">✕</button></span>`).join('') || '<span style="font-size:12px;color:#8a96ae;">Пока нет новых карточек</span>'}</div>
-          </div>`).join('')}
-      </div>
-    </div>`).join('') || '<div style="color:#8a96ae;">Данные каталога недоступны.</div>';
-
+  renderCatalogBreadcrumbs();
+  renderCatalogViewer();
+  syncCatalogFormWithContext();
+  refreshServiceGroupOptions();
+  updateCatalogImagePreview();
   const services=document.getElementById('service-admin-tree');
   if (services) services.innerHTML = (CATALOG_DATA.service_groups||[]).map(group => `
-    <div style="border:1px solid #e8ecf4;border-radius:12px;padding:16px;">
+    <div class="catalog-admin-service-card">
       <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-        <div><div style="font-weight:700;color:#001952;">${group.title}</div><div style="font-size:12px;color:#8a96ae;">#${group.slug}</div></div>
-        <button class="crm-btn crm-btn-ghost" onclick="deleteServiceGroup(${group.id})">Удалить группу</button>
+        <div><div style="font-weight:700;color:#001952;">${escapeHtml(group.title)}</div><div style="font-size:12px;color:#8a96ae;">#${escapeHtml(group.slug || '')}</div></div>
+        <button class="crm-btn crm-btn-ghost" onclick='deleteServiceGroup(${group.id}, ${JSON.stringify(group.title)})'>Удалить группу</button>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${(group.items||[]).map(item => `<span style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:#f9fafc;border:1px solid #e8ecf4;border-radius:999px;font-size:12px;">${item.title}<button onclick="deleteServiceItem(${item.id})" style="background:none;border:none;color:#8B1A1A;cursor:pointer;">✕</button></span>`).join('') || '<span style="font-size:12px;color:#8a96ae;">В группе пока нет услуг</span>'}</div>
-    </div>`).join('') || '<div style="color:#8a96ae;">Группы услуг пока не загружены.</div>';
+      <div class="catalog-admin-service-items">${(group.items||[]).map(item => `<span class="catalog-admin-chip">${escapeHtml(item.title)}<button onclick='deleteServiceItem(${item.id}, ${JSON.stringify(item.title)})' style="background:none;border:none;color:#8B1A1A;cursor:pointer;">✕</button></span>`).join('') || '<span style="font-size:12px;color:#8a96ae;">В группе пока нет услуг</span>'}</div>
+    </div>`).join('') || '<div class="catalog-admin-empty">Группы услуг пока не загружены.</div>';
 }
 
 async function createCatalogEntity(){
@@ -909,24 +1127,27 @@ async function createCatalogEntity(){
       slug: document.getElementById('catalog-slug').value.trim(),
       sort_order: Number(document.getElementById('catalog-sort').value || 0),
       url: document.getElementById('catalog-url').value.trim(),
+      image: document.getElementById('catalog-image').value.trim(),
       description: document.getElementById('catalog-description').value.trim(),
       is_active: true
     };
-    if (!payload.name) return showInlineMsg('catalog-admin-msg','Укажите название', false);
+    if (!payload.name) return showInlineMsg('catalog-admin-msg','Укажите название карточки', false);
+    if (payload.entity_type !== 'category' && !payload.parent_id) return showInlineMsg('catalog-admin-msg','Выберите раздел, в который нужно добавить карточку', false);
     const res = await fetch(API + '/api/admin/catalog/entities', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, body:JSON.stringify(payload) });
     if (!res.ok) throw new Error();
-    showInlineMsg('catalog-admin-msg','Элемент каталога добавлен');
-    ['catalog-name','catalog-slug','catalog-url','catalog-description'].forEach(id => document.getElementById(id).value='');
-    document.getElementById('catalog-sort').value='0';
+    showInlineMsg('catalog-admin-msg','Карточка успешно добавлена');
+    clearCatalogForm();
     await loadCatalogAdminData();
-  } catch (e) { showInlineMsg('catalog-admin-msg','Не удалось сохранить элемент каталога', false); }
+  } catch (e) { showInlineMsg('catalog-admin-msg','Не удалось сохранить карточку каталога', false); }
 }
 
-async function deleteCatalogEntity(id){
-  if (!confirm('Удалить элемент и все вложенные элементы?')) return;
+async function deleteCatalogEntity(id, name){
+  if (!confirm(`Удалить карточку «${name || 'элемент'}»? Для вложенных разделов также будут удалены все дочерние карточки.`)) return;
   try {
     const res = await fetch(API + '/api/admin/catalog/entities/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} });
     if (!res.ok) throw new Error();
+    showInlineMsg('catalog-admin-msg','Карточка удалена');
+    if (CATALOG_BROWSER_STATE.categoryId === id || CATALOG_BROWSER_STATE.subcategoryId === id) resetCatalogBrowser();
     await loadCatalogAdminData();
   } catch (e) { showInlineMsg('catalog-admin-msg','Не удалось удалить элемент каталога', false); }
 }
@@ -957,13 +1178,14 @@ async function createServiceItem(){
   } catch (e) { showInlineMsg('service-admin-msg','Не удалось добавить услугу', false); }
 }
 
-async function deleteServiceGroup(id){
-  if (!confirm('Удалить группу услуг и все её пункты?')) return;
-  try { const res = await fetch(API + '/api/admin/services/groups/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} }); if(!res.ok) throw new Error(); await loadCatalogAdminData(); } catch(e){ showInlineMsg('service-admin-msg','Не удалось удалить группу', false); }
+async function deleteServiceGroup(id, title){
+  if (!confirm(`Удалить группу услуг «${title || 'без названия'}» и все её пункты?`)) return;
+  try { const res = await fetch(API + '/api/admin/services/groups/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} }); if(!res.ok) throw new Error(); showInlineMsg('service-admin-msg','Группа услуг удалена'); await loadCatalogAdminData(); } catch(e){ showInlineMsg('service-admin-msg','Не удалось удалить группу', false); }
 }
 
-async function deleteServiceItem(id){
-  try { const res = await fetch(API + '/api/admin/services/items/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} }); if(!res.ok) throw new Error(); await loadCatalogAdminData(); } catch(e){ showInlineMsg('service-admin-msg','Не удалось удалить услугу', false); }
+async function deleteServiceItem(id, title){
+  if (!confirm(`Удалить услугу «${title || 'без названия'}»?`)) return;
+  try { const res = await fetch(API + '/api/admin/services/items/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+TOKEN} }); if(!res.ok) throw new Error(); showInlineMsg('service-admin-msg','Услуга удалена'); await loadCatalogAdminData(); } catch(e){ showInlineMsg('service-admin-msg','Не удалось удалить услугу', false); }
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
