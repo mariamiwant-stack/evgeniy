@@ -65,6 +65,142 @@
   loadInlineCatalogEditor();
   loadSiteState();
 
+  function showFeedbackStatus(form, text, ok) {
+    var msg = form.querySelector('.epm-feedback-msg');
+    if (!msg) {
+      msg = document.createElement('div');
+      msg.className = 'epm-feedback-msg';
+      msg.style.cssText = 'margin:10px 0 0;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.45;display:none;';
+      form.appendChild(msg);
+    }
+    msg.style.display = 'block';
+    msg.style.background = ok ? '#f0fdf4' : '#fff1f2';
+    msg.style.color = ok ? '#166534' : '#9f1239';
+    msg.textContent = text;
+  }
+
+  function firstValue(form, selectors) {
+    for (var i = 0; i < selectors.length; i++) {
+      var el = form.querySelector(selectors[i]);
+      if (el && typeof el.value === 'string' && el.value.trim()) return el.value.trim();
+    }
+    return '';
+  }
+
+  function initUnifiedFeedbackForms() {
+    var forms = Array.from(document.querySelectorAll('form'));
+    forms.forEach(function (form) {
+      if (form.id === 'epmCallbackForm' || form._epmFeedbackInit) return;
+      var submitBtn = form.querySelector('button[type="submit"],input[type="submit"]');
+      if (!submitBtn) return;
+      var submitText = (submitBtn.textContent || submitBtn.value || '').trim().toLowerCase();
+      if (submitText.indexOf('отправить') === -1) return;
+      var hasPhoneField = !!form.querySelector('input[type="tel"],input[name*="phone" i]');
+      if (!hasPhoneField) return;
+
+      if (form.getAttribute('onsubmit')) form.removeAttribute('onsubmit');
+      form._epmFeedbackInit = true;
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (submitBtn.disabled) return;
+        var phone = firstValue(form, ['input[name="phone"]', 'input[type="tel"]']);
+        if (!phone) {
+          showFeedbackStatus(form, 'Укажите номер телефона.', false);
+          return;
+        }
+        submitBtn.disabled = true;
+        var isInputSubmit = submitBtn.tagName === 'INPUT';
+        var prevText = isInputSubmit ? (submitBtn.value || '') : (submitBtn.textContent || '');
+        if (isInputSubmit) submitBtn.value = 'Отправка...';
+        else submitBtn.textContent = 'Отправка...';
+        try {
+          var payload = {
+            type: 'callback',
+            name: firstValue(form, ['input[name="name"]', 'input[placeholder*="Имя" i]', 'input[type="text"]']),
+            phone: phone,
+            email: firstValue(form, ['input[name="email"]', 'input[type="email"]']),
+            comment: firstValue(form, ['textarea[name="comment"]', 'textarea[placeholder*="запрос" i]', 'textarea']),
+            page_url: location.href
+          };
+          var res = await fetch(API_BASE + '/api/callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          var isLocalPreview = API_BASE === '' || API_BASE === 'http://localhost:8000';
+          if (!res.ok && !isLocalPreview) throw new Error('callback_failed');
+          showFeedbackStatus(form, '✔ Заявка отправлена. Мы свяжемся с вами в ближайшее время.', true);
+          form.reset();
+        } catch (err) {
+          showFeedbackStatus(form, 'Не удалось отправить заявку. Попробуйте ещё раз.', false);
+        } finally {
+          submitBtn.disabled = false;
+          if (isInputSubmit) submitBtn.value = prevText || 'Отправить';
+          else submitBtn.textContent = prevText || 'Отправить';
+        }
+      });
+    });
+  }
+
+  function initCallbackModalBridge() {
+    var forms = Array.from(document.querySelectorAll('form#epmCallbackForm'));
+    forms.forEach(function (form) {
+      if (form._epmBridgeInit) return;
+      form._epmBridgeInit = true;
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var msg = form.querySelector('#epmCallbackMsg');
+        var btn = form.querySelector('#epmCallbackBtn');
+        var prevText = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = 'Отправляем...'; }
+        try {
+          var payload = {
+            type: 'callback',
+            name: firstValue(form, ['input[name="name"]', 'input[type="text"]']),
+            phone: firstValue(form, ['input[name="phone"]', 'input[type="tel"]']),
+            comment: firstValue(form, ['textarea[name="comment"]', 'textarea']),
+            page_url: location.href
+          };
+          if (!payload.phone) throw new Error('phone_required');
+          var res = await fetch(API_BASE + '/api/callback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          var isLocalPreview = API_BASE === '' || API_BASE === 'http://localhost:8000';
+          if (!res.ok && !isLocalPreview) throw new Error('callback_failed');
+          if (msg) {
+            msg.style.display = 'block';
+            msg.style.background = '#f0fdf4';
+            msg.style.color = '#166534';
+            msg.textContent = '✔ Спасибо! Заявка принята.';
+          }
+          form.reset();
+        } catch (err) {
+          if (msg) {
+            msg.style.display = 'block';
+            msg.style.background = '#fff0f0';
+            msg.style.color = '#991b1b';
+            msg.textContent = 'Ошибка. Позвоните: +7 (933) 993 87 77';
+          }
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = prevText || 'Отправить'; }
+        }
+      }, true);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      initUnifiedFeedbackForms();
+      initCallbackModalBridge();
+    });
+  } else {
+    initUnifiedFeedbackForms();
+    initCallbackModalBridge();
+  }
+
   // ─── Модель (in-memory) ──────────────────────────────────────────────────────
   // ─── Модель (localStorage) ──────────────────────────────────────────────────
 

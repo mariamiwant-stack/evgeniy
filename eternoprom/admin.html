@@ -75,14 +75,14 @@
       };
 
       document.getElementById('toggleBtn').onclick = function(){
-        if (isEnabled()) localStorage.removeItem(FLAG_KEY);
+        if (isEnabled()) localStorage.setItem(FLAG_KEY, '0');
         else localStorage.setItem(FLAG_KEY, '1');
         render();
       };
 
       document.getElementById('logoutBtn').onclick = function(){
         localStorage.removeItem(AUTH_KEY);
-        localStorage.removeItem(FLAG_KEY);
+        localStorage.setItem(FLAG_KEY, '0');
         render();
       };
 

@@ -7,7 +7,9 @@
 
   function isEnabled() {
     try {
-      if (localStorage.getItem(EDIT_FLAG_KEY) === '1') return true;
+      var flag = localStorage.getItem(EDIT_FLAG_KEY);
+      if (flag === '1') return true;
+      if (flag === '0') return false;
       if (localStorage.getItem(ADMIN_TOKEN_KEY)) return true;
     } catch (e) {}
     return /(?:\?|&)epm_edit=1(?:&|$)/.test(location.search || '');
@@ -307,6 +309,10 @@
 
     document.body.appendChild(toggle);
     document.body.appendChild(panel);
+
+    window.addEventListener('storage', function (evt) {
+      if (evt && evt.key === EDIT_FLAG_KEY) location.reload();
+    });
   }
 
   if (document.readyState === 'loading') {
