@@ -43,7 +43,19 @@
     document.head.appendChild(script);
   }
 
+  function loadInlineCatalogEditor() {
+    var path = (location.pathname || '').replace(/\/index\.html$/, '/');
+    var isCatalogLike = /\/catalog(\/|\.html|$)/.test(path);
+    if (!isCatalogLike || document.querySelector('script[data-epm-inline-editor]')) return;
+    var script = document.createElement('script');
+    script.defer = true;
+    script.src = '/eternoprom/epm-editor.js';
+    script.setAttribute('data-epm-inline-editor', '1');
+    document.head.appendChild(script);
+  }
+
   loadCatalogAdminEnhancements();
+  loadInlineCatalogEditor();
   loadSiteState();
 
   // ─── Модель (in-memory) ──────────────────────────────────────────────────────

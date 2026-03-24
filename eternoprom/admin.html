@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPM Admin</title>
+  <style>
+    body{margin:0;font-family:Inter,Arial,sans-serif;background:#f4f7fc;color:#0f234f;display:grid;place-items:center;min-height:100vh}
+    .card{width:min(460px,calc(100vw - 32px));background:#fff;border:1px solid #dce6f5;border-radius:16px;padding:20px;box-shadow:0 20px 40px rgba(0,25,82,.12)}
+    h1{margin:0 0 14px;font-size:22px}
+    p{margin:0 0 12px;font-size:14px;color:#50648f;line-height:1.5}
+    .row{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+    input{padding:11px 12px;border:1px solid #cfd9ea;border-radius:10px;font:500 14px Inter,Arial,sans-serif}
+    button{border:none;border-radius:10px;padding:11px 14px;background:#001952;color:#fff;font:700 13px Inter,Arial,sans-serif;cursor:pointer}
+    .toggle{display:flex;align-items:center;justify-content:space-between;border:1px solid #dce6f5;border-radius:12px;padding:12px;margin-top:12px}
+    .state{font-weight:700}
+    .off{color:#9f1239}.on{color:#166534}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Админ-режим редактора</h1>
+    <p>После включения на страницах каталога появится кнопка «✏ Редактировать».</p>
+
+    <div id="authBlock">
+      <div class="row"><input id="login" placeholder="Логин" value="admin" /></div>
+      <div class="row"><input id="password" type="password" placeholder="Пароль" /></div>
+      <button id="loginBtn">Войти</button>
+    </div>
+
+    <div id="panel" style="display:none">
+      <div class="toggle">
+        <span>Глобальный режим редактирования</span>
+        <span id="state" class="state off">ВЫКЛ</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="toggleBtn">Переключить</button>
+        <button id="logoutBtn" style="background:#64748b">Выйти</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var AUTH_KEY = 'epm_editor_admin_auth';
+      var FLAG_KEY = 'epm_edit_mode';
+      var LOGIN = 'admin';
+      var PASSWORD = 'epm2026';
+
+      var authBlock = document.getElementById('authBlock');
+      var panel = document.getElementById('panel');
+      var state = document.getElementById('state');
+
+      function isAuth(){ return localStorage.getItem(AUTH_KEY) === '1'; }
+      function isEnabled(){ return localStorage.getItem(FLAG_KEY) === '1'; }
+
+      function render(){
+        var auth = isAuth();
+        authBlock.style.display = auth ? 'none' : 'block';
+        panel.style.display = auth ? 'block' : 'none';
+        var en = isEnabled();
+        state.textContent = en ? 'ВКЛ' : 'ВЫКЛ';
+        state.className = 'state ' + (en ? 'on' : 'off');
+      }
+
+      document.getElementById('loginBtn').onclick = function(){
+        var login = document.getElementById('login').value.trim();
+        var pass = document.getElementById('password').value;
+        if (login === LOGIN && pass === PASSWORD) {
+          localStorage.setItem(AUTH_KEY, '1');
+          render();
+        } else {
+          alert('Неверный логин или пароль');
+        }
+      };
+
+      document.getElementById('toggleBtn').onclick = function(){
+        if (isEnabled()) localStorage.removeItem(FLAG_KEY);
+        else localStorage.setItem(FLAG_KEY, '1');
+        render();
+      };
+
+      document.getElementById('logoutBtn').onclick = function(){
+        localStorage.removeItem(AUTH_KEY);
+        localStorage.removeItem(FLAG_KEY);
+        render();
+      };
+
+      render();
+    })();
+  </script>
+</body>
+</html>
